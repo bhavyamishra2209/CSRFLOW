@@ -5,6 +5,8 @@ FastAPI routes for the RAG system API.
 import logging
 import uuid
 import datetime
+import json
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException, Query, File, UploadFile
 from fastapi.responses import HTMLResponse
@@ -71,7 +73,36 @@ except Exception as _ie:
 #                          upload_date, status, ocr_confidence,
 #                          extracted_fields, chunk_ids } }
 
+# Load document registry from file
+REGISTRY_FILE = Path("./data/document_registry.json")
 _DOC_REGISTRY: Dict[str, Dict[str, Any]] = {}
+
+def _load_registry():
+    """Load document registry from file."""
+    global _DOC_REGISTRY
+    if REGISTRY_FILE.exists():
+        try:
+            with open(REGISTRY_FILE, 'r') as f:
+                data = json.load(f)
+                _DOC_REGISTRY = {d["document_id"]: d for d in data}
+            logger.info(f"✓ Loaded {len(_DOC_REGISTRY)} documents from registry")
+        except Exception as e:
+            logger.warning(f"Could not load document registry: {e}")
+            _DOC_REGISTRY = {}
+    else:
+        _DOC_REGISTRY = {}
+
+def _save_registry():
+    """Save document registry to file."""
+    try:
+        REGISTRY_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(REGISTRY_FILE, 'w') as f:
+            json.dump(list(_DOC_REGISTRY.values()), f, indent=2)
+    except Exception as e:
+        logger.error(f"Failed to save document registry: {e}")
+
+# Load registry on startup
+_load_registry()
 
 
 def _registry_add(
@@ -98,6 +129,8 @@ def _registry_add(
         "raw_text_preview":          raw_text_preview[:500],
         "owner_id":                  owner_id,
     }
+    # Save to file after adding
+    _save_registry()
 
 
 # ---------------------------------------------------------------------------
@@ -409,6 +442,51 @@ class RAGAPIRouter:
                     except Exception:
                         pass
 
+                    # ── Security: Add to hash chain and log audit ──────────
+                    chain_entry = None
+                    try:
+                        import hashlib
+                        from security.hash_chain import DocumentHashChain
+                        from security.audit_logger import AuditLogger, AuditAction
+                        
+                        # Calculate file hash
+                        file_hash = hashlib.sha256(content).hexdigest()
+                        
+                        # Add to hash chain
+                        hash_chain = DocumentHashChain()
+                        chain_entry = hash_chain.add_document(
+                            document_id=doc_id,
+                            document_type=doc_type,
+                            file_hash=file_hash,
+                            user_id=user.user_id,
+                            metadata={
+                                "filename": file.filename,
+                                "size_bytes": len(content),
+                                "chunk_count": len(chunks),
+                                "classification_confidence": float(classification_confidence)
+                            }
+                        )
+                        
+                        # Log audit action
+                        audit_logger = AuditLogger()
+                        audit_logger.log_action(
+                            action=AuditAction.UPLOAD,
+                            user_id=user.user_id,
+                            document_id=doc_id,
+                            resource_type="document",
+                            metadata={
+                                "filename": file.filename,
+                                "document_type": doc_type,
+                                "file_size": len(content),
+                                "hash_chain_index": chain_entry["index"]
+                            },
+                            success=True
+                        )
+                        
+                        logger.info(f"✓ Security: Document added to hash chain (index: {chain_entry['index']})")
+                    except Exception as sec_err:
+                        logger.warning(f"Security features failed (non-fatal): {sec_err}")
+
                     return {
                         "status": "success",
                         "message": f"Processed document into {len(chunks)} chunks",
@@ -422,6 +500,10 @@ class RAGAPIRouter:
                         "firebase_enabled": FIREBASE_AVAILABLE,
                         "knowledge_graph": kg_stats,
                         "neo4j_synced": neo4j_synced,
+                        "security": {
+                            "hash_chain_index": chain_entry["index"] if chain_entry else None,
+                            "file_hash": chain_entry["file_hash"][:16] + "..." if chain_entry else None
+                        }
                     }
                 finally:
                     os.unlink(temp_path)

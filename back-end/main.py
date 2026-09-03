@@ -148,6 +148,14 @@ if rag_engine:
         except Exception as _ae:
             logger.warning(f"Analytics routes not registered: {_ae}")
 
+        # Security routes — hash chain, integrity, audit logging
+        try:
+            from routes.security_routes import register_security_routes
+            register_security_routes(app)
+            logger.info("✓ Security routes registered")
+        except Exception as _se:
+            logger.warning(f"Security routes not registered: {_se}")
+
     except ImportError as e:
         logger.error(f"Import error while registering routes: {e}")
         logger.warning("Some dependencies may be missing")
