@@ -136,11 +136,14 @@ class MilestoneManager:
             if key in updates and updates[key] is not None:
                 ms[key] = updates[key]
 
-        # Auto-update status if progress reaches 100%
-        if ms.get("progress_percentage", 0.0) >= 100.0 and ms.get("status") != MilestoneStatus.COMPLETED.value:
+        # Auto-update status based on progress_percentage if not explicitly set
+        prog = ms.get("progress_percentage", 0.0)
+        if prog >= 100.0 and ms.get("status") != MilestoneStatus.COMPLETED.value:
             ms["status"] = MilestoneStatus.COMPLETED.value
             if not ms.get("completion_date"):
                 ms["completion_date"] = datetime.date.today().isoformat()
+        elif 0.0 < prog < 100.0 and ms.get("status") == MilestoneStatus.PLANNED.value:
+            ms["status"] = MilestoneStatus.IN_PROGRESS.value
 
         # Refresh delay status
         is_delayed, delay_days = _check_is_delayed(ms.get("target_date"), ms.get("status"))
