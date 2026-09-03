@@ -1,0 +1,66 @@
+{
+  "document_type": "Project Proposal",
+  "description": "CSR project proposal document detailing project plan, budget, duration, and agency details",
+  "fields": [
+    {
+      "name": "project_title",
+      "type": "string",
+      "description": "Title of the proposed CSR project",
+      "required": true
+    },
+    {
+      "name": "implementing_agency",
+      "type": "string",
+      "description": "Name of the implementing NGO, trust, or agency",
+      "required": true
+    },
+    {
+      "name": "target_beneficiaries",
+      "type": "string",
+      "description": "Target population or beneficiary group",
+      "required": false
+    },
+    {
+      "name": "total_budget",
+      "type": "number",
+      "description": "Total estimated project budget in INR",
+      "required": true
+    },
+    {
+      "name": "project_duration",
+      "type": "string",
+      "description": "Duration or timeline of the project",
+      "required": true
+    },
+    {
+      "name": "project_location",
+      "type": "string",
+      "description": "Location or geographical area of implementation",
+      "required": false
+    },
+    {
+      "name": "objectives",
+      "type": "string",
+      "description": "Core goals and objectives of the project",
+      "required": false
+    },
+    {
+      "name": "csr_schedule",
+      "type": "string",
+      "description": "Applicable CSR Schedule VII sector category",
+      "required": false
+    },
+    {
+      "name": "contact_person",
+      "type": "string",
+      "description": "Primary contact person for the proposal",
+      "required": false
+    },
+    {
+      "name": "submission_date",
+      "type": "date",
+      "description": "Date of proposal submission",
+      "required": true
+    }
+  ]
+}

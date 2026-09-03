@@ -1,0 +1,48 @@
+{
+  "document_type": "Progress Report",
+  "description": "Periodic progress report tracking CSR project implementation status and metrics",
+  "fields": [
+    {
+      "name": "project_title",
+      "type": "string",
+      "description": "Title of the CSR project",
+      "required": true
+    },
+    {
+      "name": "reporting_period",
+      "type": "string",
+      "description": "Time frame covered by this report (e.g. Q1 2025-26)",
+      "required": true
+    },
+    {
+      "name": "implementing_agency",
+      "type": "string",
+      "description": "Agency executing the project",
+      "required": true
+    },
+    {
+      "name": "milestones_achieved",
+      "type": "string",
+      "description": "Key milestones accomplished during period",
+      "required": false
+    },
+    {
+      "name": "funds_utilized",
+      "type": "number",
+      "description": "Funds utilized during reporting period",
+      "required": false
+    },
+    {
+      "name": "beneficiary_count",
+      "type": "number",
+      "description": "Number of beneficiaries reached during period",
+      "required": false
+    },
+    {
+      "name": "challenges",
+      "type": "string",
+      "description": "Challenges encountered and mitigation steps",
+      "required": false
+    }
+  ]
+}

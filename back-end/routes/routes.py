@@ -84,6 +84,7 @@ def _registry_add(
     owner_id: str = "",
     ocr_confidence: Optional[float] = None,
     raw_text_preview: str = "",
+    csr_context: Optional[Dict] = None,
 ) -> None:
     _DOC_REGISTRY[doc_id] = {
         "document_id":               doc_id,
@@ -97,6 +98,13 @@ def _registry_add(
         "chunk_ids":                 chunk_ids,
         "raw_text_preview":          raw_text_preview[:500],
         "owner_id":                  owner_id,
+        "csr_context":               csr_context,
+        "verification_status":       None,
+        "verification_confidence":   None,
+        "verification_reason":       None,
+        "missing_fields":            [],
+        "reason":                    None,
+        "verification_matched_record": None,
     }
 
 
@@ -158,8 +166,14 @@ class RAGAPIRouter:
         self.app = app
         self.rag_engine = rag_engine
 
-        from embedding.model import create_embedding_model
-        self.classifier = DocumentClassifier(create_embedding_model())
+        try:
+            from embedding.model import create_embedding_model
+            emb = create_embedding_model()
+        except Exception as _e:
+            logger.warning(f"Could not load embedding model ({_e}); classifier will use keyword matching")
+            emb = None
+
+        self.classifier = DocumentClassifier(emb)
         self.extractor = FieldExtractor(self.rag_engine)
 
         self._register_routes()
@@ -355,6 +369,10 @@ class RAGAPIRouter:
 
                     _fb_update({"status": "COMPLETED"})
 
+                    # Generate CSR Context summary
+                    from document.csr_context import build_csr_context
+                    csr_ctx = build_csr_context(doc_type, extracted_fields)
+
                     # Register in document registry
                     _registry_add(
                         doc_id=doc_id,
@@ -366,6 +384,7 @@ class RAGAPIRouter:
                         owner_id=user.user_id,
                         ocr_confidence=chunk_metadata[0].get("ocr_confidence") if chunk_metadata else None,
                         raw_text_preview=full_text,
+                        csr_context=csr_ctx,
                     )
 
                     # ── Phase 3: auto-sync to Neo4j KG (non-fatal) ──────────
@@ -416,6 +435,7 @@ class RAGAPIRouter:
                         "document_type": doc_type,
                         "classification_confidence": float(classification_confidence),
                         "extracted_fields": extracted_fields,
+                        "csr_context": csr_ctx,
                         "chunk_count": len(chunks),
                         "document_ids": doc_ids,
                         "processing_time_seconds": elapsed,
@@ -888,6 +908,8 @@ class RAGAPIRouter:
                 rec["verification_status"] = result["status"]
                 rec["verification_confidence"] = result["confidence"]
                 rec["verification_reason"] = result["reason"]
+                rec["missing_fields"] = result.get("missing_fields", [])
+                rec["reason"] = result["reason"]
                 rec["verification_matched_record"] = result.get("matched_record")
 
                 # Update Firebase if available

@@ -1,0 +1,48 @@
+{
+  "document_type": "Budget Sheet",
+  "description": "CSR project financial budget breakdown and expense tracking sheet",
+  "fields": [
+    {
+      "name": "project_title",
+      "type": "string",
+      "description": "Name of the CSR project",
+      "required": true
+    },
+    {
+      "name": "financial_year",
+      "type": "string",
+      "description": "Financial year applicable (e.g. 2025-26)",
+      "required": true
+    },
+    {
+      "name": "total_budget",
+      "type": "number",
+      "description": "Total project budget amount",
+      "required": true
+    },
+    {
+      "name": "allocated_budget",
+      "type": "number",
+      "description": "Budget allocated for current period",
+      "required": false
+    },
+    {
+      "name": "spent_amount",
+      "type": "number",
+      "description": "Total expenditure spent to date",
+      "required": false
+    },
+    {
+      "name": "unspent_amount",
+      "type": "number",
+      "description": "Remaining unspent budget balance",
+      "required": false
+    },
+    {
+      "name": "budget_categories",
+      "type": "string",
+      "description": "Category-wise expense breakdown summary",
+      "required": false
+    }
+  ]
+}

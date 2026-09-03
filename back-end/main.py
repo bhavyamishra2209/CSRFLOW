@@ -116,49 +116,54 @@ except Exception as e:
     logger.debug(traceback.format_exc())
 
 # Register routes
-if rag_engine:
+try:
+    logger.info("Registering API routes...")
+    from routes.routes import RAGAPIRouter
+    router = RAGAPIRouter(app, rag_engine)
+    logger.info("✓ API routes registered successfully")
+
+    # Phase 3 — graph routes + Neo4j startup check
     try:
-        logger.info("Registering API routes...")
-        from routes.routes import RAGAPIRouter
-        router = RAGAPIRouter(app, rag_engine)
-        logger.info("✓ API routes registered successfully")
+        from routes.graph_routes import register_graph_routes, neo4j_startup_check
+        register_graph_routes(app, rag_engine)
+        neo4j_startup_check()
+        logger.info("✓ Graph routes registered")
+    except Exception as _ge:
+        logger.warning(f"Graph routes not registered: {_ge}")
 
-        # Phase 3 — graph routes + Neo4j startup check
-        try:
-            from routes.graph_routes import register_graph_routes, neo4j_startup_check
-            register_graph_routes(app, rag_engine)
-            neo4j_startup_check()
-            logger.info("✓ Graph routes registered")
-        except Exception as _ge:
-            logger.warning(f"Graph routes not registered: {_ge}")
+    # Phase 7 — schema management routes
+    try:
+        from routes.schema_routes import register_schema_routes
+        register_schema_routes(app)
+        logger.info("✓ Schema routes registered")
+    except Exception as _se:
+        logger.warning(f"Schema routes not registered: {_se}")
 
-        # Phase 7 — schema management routes
-        try:
-            from routes.schema_routes import register_schema_routes
-            register_schema_routes(app)
-            logger.info("✓ Schema routes registered")
-        except Exception as _se:
-            logger.warning(f"Schema routes not registered: {_se}")
+    # Phase 8 — analytics routes
+    try:
+        from routes.analytics_routes import register_analytics_routes
+        register_analytics_routes(app)
+        logger.info("✓ Analytics routes registered")
+    except Exception as _ae:
+        logger.warning(f"Analytics routes not registered: {_ae}")
 
-        # Phase 8 — analytics routes
-        try:
-            from routes.analytics_routes import register_analytics_routes
-            register_analytics_routes(app)
-            logger.info("✓ Analytics routes registered")
-        except Exception as _ae:
-            logger.warning(f"Analytics routes not registered: {_ae}")
+    # CSR Case routes
+    try:
+        from routes.case_routes import register_case_routes
+        register_case_routes(app)
+        logger.info("✓ Case routes registered")
+    except Exception as _ce:
+        logger.warning(f"Case routes not registered: {_ce}")
 
-    except ImportError as e:
-        logger.error(f"Import error while registering routes: {e}")
-        logger.warning("Some dependencies may be missing")
-        logger.info("Routes will work with limited functionality")
-    except Exception as e:
-        logger.error(f"Failed to register routes: {e}")
-        logger.warning("API will only have basic endpoints")
-        import traceback
-        logger.debug(traceback.format_exc())
-else:
-    logger.warning("RAG engine not available - registering minimal endpoints only")
+except ImportError as e:
+    logger.error(f"Import error while registering routes: {e}")
+    logger.warning("Some dependencies may be missing")
+    logger.info("Routes will work with limited functionality")
+except Exception as e:
+    logger.error(f"Failed to register routes: {e}")
+    logger.warning("API will only have basic endpoints")
+    import traceback
+    logger.debug(traceback.format_exc())
 
 # Always available endpoints
 @app.get("/")

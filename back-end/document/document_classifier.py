@@ -22,20 +22,27 @@ class DocumentClassifier:
     Fast, explainable, no fine-tuning needed - good for prototyping.
     """
     
-    def __init__(self, embedding_model):
+    def __init__(self, embedding_model=None):
         """
         Initialize the document classifier.
         
         Args:
-            embedding_model: Embedding model instance (from embedding.model)
+            embedding_model: Embedding model instance (optional)
         """
         self.embedding_model = embedding_model
         self.document_types = get_all_document_types()
-        
-        # Precompute embeddings for all document type descriptions
-        logger.info("Precomputing document type embeddings...")
-        self._precompute_type_embeddings()
-        logger.info(f"Classifier ready with {len(self.type_embeddings)} document types")
+        self.type_names = [dt["name"] for dt in self.document_types.values()]
+        self.type_embeddings = None
+
+        if self.embedding_model is not None:
+            try:
+                logger.info("Precomputing document type embeddings...")
+                self._precompute_type_embeddings()
+                logger.info(f"Classifier ready with {len(self.type_embeddings)} document types")
+            except Exception as e:
+                logger.warning(f"Could not precompute embeddings ({e}), using keyword classification fallback")
+                self.embedding_model = None
+                self.type_embeddings = None
     
     def _precompute_type_embeddings(self):
         """Precompute embeddings for all document type descriptions."""
@@ -47,33 +54,44 @@ class DocumentClassifier:
             description = type_info["description"]
             keywords = " ".join(type_info["keywords"])
             
-            # Combine description and keywords for better matching
             full_description = f"{description}. Keywords: {keywords}"
             
             self.type_names.append(name)
             self.type_descriptions.append(full_description)
         
-        # Generate embeddings for all types at once
         self.type_embeddings = self.embedding_model.embed(self.type_descriptions)
     
+    def classify_by_keywords(self, text: str) -> Tuple[str, float]:
+        """Keyword-based classification fallback."""
+        if not text or not text.strip():
+            return "Other", 0.0
+        text_lower = text.lower()
+        best_type = "Other"
+        best_score = 0.0
+        for key, info in self.document_types.items():
+            name = info["name"]
+            keywords = info.get("keywords", [])
+            matches = sum(1 for kw in keywords if kw.lower() in text_lower)
+            if matches > 0:
+                score = min(0.95, 0.4 + matches * 0.15)
+                if score > best_score:
+                    best_score = score
+                    best_type = name
+        return best_type, best_score
+
     def classify(self, text: str, top_k: int = 3) -> Tuple[str, float]:
         """
         Classify a document based on its text content.
-        
-        Args:
-            text: Document text to classify
-            top_k: Number of top candidates to consider
-            
-        Returns:
-            Tuple of (document_type, confidence_score)
         """
         if not text or not text.strip():
             logger.warning("Empty text provided for classification")
             return "Other", 0.0
         
+        if self.embedding_model is None or self.type_embeddings is None:
+            return self.classify_by_keywords(text)
+
         try:
             # Truncate very long texts to avoid embedding issues
-            # Take first 2000 chars + last 500 chars for better representation
             if len(text) > 2500:
                 text = text[:2000] + " " + text[-500:]
             
@@ -91,10 +109,11 @@ class DocumentClassifier:
             best_type = self.type_names[best_idx]
             best_confidence = float(similarities[best_idx])
 
-            # Apply confidence thresholding
-            # If confidence is too low, classify as "Other"
             if best_confidence < 0.3:
-                logger.info(f"Low confidence ({best_confidence:.3f}), classifying as 'Other'")
+                # Try keyword fallback before resorting to "Other"
+                kw_type, kw_score = self.classify_by_keywords(text)
+                if kw_score > 0.4:
+                    return kw_type, kw_score
                 return "Other", best_confidence
 
             logger.info(f"Classified as '{best_type}' with confidence {best_confidence:.3f}")
@@ -102,8 +121,8 @@ class DocumentClassifier:
             return best_type, best_confidence
             
         except Exception as e:
-            logger.error(f"Classification error: {e}")
-            return "Other", 0.0
+            logger.error(f"Classification error ({e}), falling back to keyword matching")
+            return self.classify_by_keywords(text)
     
     def classify_with_alternatives(
         self, 

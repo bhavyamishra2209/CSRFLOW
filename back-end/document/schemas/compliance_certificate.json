@@ -1,0 +1,42 @@
+{
+  "document_type": "Compliance Certificate",
+  "description": "Statutory CSR compliance certificate confirming adherence to Companies Act regulations",
+  "fields": [
+    {
+      "name": "certificate_number",
+      "type": "string",
+      "description": "Compliance certificate reference number",
+      "required": true
+    },
+    {
+      "name": "company_name",
+      "type": "string",
+      "description": "Corporate entity name",
+      "required": true
+    },
+    {
+      "name": "financial_year",
+      "type": "string",
+      "description": "Financial year of compliance",
+      "required": true
+    },
+    {
+      "name": "compliance_status",
+      "type": "string",
+      "description": "Status of compliance (Compliant, Non-compliant, Pending)",
+      "required": true
+    },
+    {
+      "name": "issue_date",
+      "type": "date",
+      "description": "Date of certificate issuance",
+      "required": true
+    },
+    {
+      "name": "authorized_signatory",
+      "type": "string",
+      "description": "Name of authorized signatory",
+      "required": false
+    }
+  ]
+}

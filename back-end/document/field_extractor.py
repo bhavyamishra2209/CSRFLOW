@@ -108,9 +108,10 @@ class FieldExtractor:
 
         # ── Universal fallback extraction ────────────────────────────────
         # Always runs — picks up whatever the schema missed or when no
-        # schema exists.  De-duplicates against schema results.
+        # schema exists. De-duplicates against schema results by reserving
+        # all schema field names (even if value is None).
         schema_found_fields = {
-            f["field"] for f in extracted_fields if f.get("value") is not None
+            f["field"] for f in extracted_fields
         }
         universal = self._universal_extract(full_text)
         for field_name, value in universal.items():
@@ -332,6 +333,213 @@ class FieldExtractor:
             ],
             'document_title': [
                 r'^([A-Z\s]{5,}(?:FORM|APPLICATION|CERTIFICATE|LICENSE|PERMIT|CARD))$',
+            ],
+            # ── CSR Document Fields ───────────────────────────────────────
+            'project_title': [
+                r'project\s+title\s*[:\-=]\s*([^\n\r]+)',
+                r'project\s+name\s*[:\-=]\s*([^\n\r]+)',
+                r'title\s+of\s+(?:the\s+)?project\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'implementing_agency': [
+                r'implementing\s+(?:agency|organization|partner|ngo)\s*[:\-=]\s*([^\n\r]+)',
+                r'agency\s+name\s*[:\-=]\s*([^\n\r]+)',
+                r'executed\s+by\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'target_beneficiaries': [
+                r'target\s+beneficiaries\s*[:\-=]\s*([^\n\r]+)',
+                r'beneficiaries\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'total_budget': [
+                r'total\s+budget\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'project\s+budget\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'budget\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'project_duration': [
+                r'project\s+duration\s*[:\-=]\s*([^\n\r]+)',
+                r'duration\s*[:\-=]\s*([^\n\r]+)',
+                r'timeline\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'project_location': [
+                r'project\s+location\s*[:\-=]\s*([^\n\r]+)',
+                r'location\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'objectives': [
+                r'objectives\s*[:\-=]\s*([^\n\r]+)',
+                r'project\s+objectives\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'csr_schedule': [
+                r'csr\s+schedule\s*[:\-=]\s*([^\n\r]+)',
+                r'schedule\s+vii\s*(?:category)?\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'contact_person': [
+                r'contact\s+person\s*[:\-=]\s*([^\n\r]+)',
+                r'nodal\s+officer\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'submission_date': [
+                r'submission\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+                r'date\s+of\s+submission\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+                r'submitted\s+on\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+            ],
+            'financial_year': [
+                r'financial\s+year\s*[:\-=]\s*([A-Z0-9\-\/]+)',
+                r'\bfy\s*[:\-=]?\s*([0-9]{2,4}[\-\/][0-9]{2,4})\b',
+            ],
+            'allocated_budget': [
+                r'allocated\s+budget\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'budget\s+allocated\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'spent_amount': [
+                r'spent\s+amount\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'total\s+expenditure\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'amount\s+spent\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'unspent_amount': [
+                r'unspent\s+amount\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'balance\s+amount\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'budget_categories': [
+                r'budget\s+categories\s*[:\-=]\s*([^\n\r]+)',
+                r'category\s+breakdown\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'reporting_period': [
+                r'reporting\s+period\s*[:\-=]\s*([^\n\r]+)',
+                r'report\s+period\s*[:\-=]\s*([^\n\r]+)',
+                r'period\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'milestones_achieved': [
+                r'milestones\s+achieved\s*[:\-=]\s*([^\n\r]+)',
+                r'key\s+milestones\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'funds_utilized': [
+                r'funds\s+utilized\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'utilized\s+amount\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'beneficiary_count': [
+                r'beneficiary\s+count\s*[:\-=]\s*([\d,]+)',
+                r'number\s+of\s+beneficiaries\s*[:\-=]\s*([\d,]+)',
+            ],
+            'challenges': [
+                r'challenges\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'uc_number': [
+                r'uc\s+(?:no|number|#)\s*[:\-=]\s*([A-Z0-9\-\/]+)',
+                r'utilization\s+certificate\s+(?:no|number)\s*[:\-=]\s*([A-Z0-9\-\/]+)',
+            ],
+            'certified_amount': [
+                r'certified\s+amount\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'amount\s+certified\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'utilization_percentage': [
+                r'utilization\s+percentage\s*[:\-=]\s*([\d\.]+)%?',
+                r'utilization\s+percent\s*[:\-=]\s*([\d\.]+)%?',
+                r'percentage\s+utilized\s*[:\-=]\s*([\d\.]+)%?',
+            ],
+            'certification_date': [
+                r'certification\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+                r'date\s+of\s+certification\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+            ],
+            'chartered_accountant_name': [
+                r'chartered\s+accountant\s*(?:name)?\s*[:\-=]\s*([^\n\r]+)',
+                r'ca\s+name\s*[:\-=]\s*([^\n\r]+)',
+                r'audited\s+by\s+ca\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'completion_date': [
+                r'completion\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+                r'date\s+of\s+completion\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+                r'completed\s+on\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+            ],
+            'final_cost': [
+                r'final\s+cost\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'total\s+final\s+cost\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'target_achieved': [
+                r'target\s+achieved\s*[:\-=]\s*([^\n\r]+)',
+                r'targets\s+achieved\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'impact_summary': [
+                r'impact\s+summary\s*[:\-=]\s*([^\n\r]+)',
+                r'overall\s+impact\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'company_name': [
+                r'company\s+name\s*[:\-=]\s*([^\n\r]+)',
+                r'corporate\s+name\s*[:\-=]\s*([^\n\r]+)',
+                r'name\s+of\s+(?:the\s+)?company\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'compliance_status': [
+                r'compliance\s+status\s*[:\-=]\s*([^\n\r]+)',
+                r'status\s*[:\-=]\s*(compliant|non-compliant|pending)',
+            ],
+            'authorized_signatory': [
+                r'authorized\s+signatory\s*[:\-=]\s*([^\n\r]+)',
+                r'signatory\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'agreement_title': [
+                r'agreement\s+title\s*[:\-=]\s*([^\n\r]+)',
+                r'mou\s+title\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'partner_organization': [
+                r'partner\s+organization\s*[:\-=]\s*([^\n\r]+)',
+                r'partner\s+name\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'agreement_date': [
+                r'agreement\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+                r'execution\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+            ],
+            'funding_amount': [
+                r'funding\s+amount\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+                r'grant\s+amount\s*[:\-=]\s*(?:INR|Rs\.?|₹)?\s*([\d,]+(?:\.\d{1,2})?)',
+            ],
+            'validity_period': [
+                r'validity\s+period\s*[:\-=]\s*([^\n\r]+)',
+                r'tenure\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'audit_report_number': [
+                r'audit\s+report\s+(?:no|number|#)\s*[:\-=]\s*([A-Z0-9\-\/]+)',
+            ],
+            'auditor_name': [
+                r'auditor\s+name\s*[:\-=]\s*([^\n\r]+)',
+                r'audited\s+by\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'audit_opinion': [
+                r'audit\s+opinion\s*[:\-=]\s*([^\n\r]+)',
+                r'opinion\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'audit_date': [
+                r'audit\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+            ],
+            'assessing_agency': [
+                r'assessing\s+agency\s*[:\-=]\s*([^\n\r]+)',
+                r'evaluation\s+agency\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'assessment_period': [
+                r'assessment\s+period\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'impact_score': [
+                r'impact\s+score\s*[:\-=]\s*([^\n\r]+)',
+                r'rating\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'key_findings': [
+                r'key\s+findings\s*[:\-=]\s*([^\n\r]+)',
+                r'findings\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'assessment_date': [
+                r'assessment\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+            ],
+            'policy_version': [
+                r'policy\s+version\s*[:\-=]\s*([^\n\r]+)',
+                r'version\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'approval_date': [
+                r'approval\s+date\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+                r'approved\s+on\s*[:\-=]\s*(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})',
+            ],
+            'focus_areas': [
+                r'focus\s+areas\s*[:\-=]\s*([^\n\r]+)',
+                r'thrust\s+areas\s*[:\-=]\s*([^\n\r]+)',
+            ],
+            'csr_committee_members': [
+                r'csr\s+committee\s+members\s*[:\-=]\s*([^\n\r]+)',
+                r'committee\s+members\s*[:\-=]\s*([^\n\r]+)',
             ],
         }
         
