@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Network,
   BarChart3,
+  Shield,
   Settings,
   LogOut,
   Menu,
@@ -80,6 +81,7 @@ function Layout() {
     { name: 'Ask AI', href: '/ask-ai', icon: MessageSquare },
     { name: 'Knowledge Graph', href: '/knowledge-graph', icon: Network },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Security', href: '/security', icon: Shield },
   ]
 
   // Add schema management for admins

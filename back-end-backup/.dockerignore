@@ -1,0 +1,29 @@
+# Secrets — never bake into image
+.env
+*firebase*adminsdk*.json
+*serviceAccountKey*.json
+
+# Runtime generated files
+kg_store.json
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Dev tooling
+.venv/
+venv/
+.vscode/
+.idea/
+*.egg-info/
+dist/
+build/
+
+# Test artifacts
+tests/
+*.log
+
+# Git
+.git/
+.gitignore

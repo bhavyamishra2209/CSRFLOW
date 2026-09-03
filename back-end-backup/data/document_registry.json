@@ -1,0 +1,245 @@
+[
+  {
+    "document_id": "4c634d4c-1e34-484b-a140-7d1769da7d6d",
+    "filename": "01_Suryodaya_Scholarship_Proposal.pdf",
+    "document_type": "Other",
+    "classification_confidence": 0.24054990708827972,
+    "upload_date": "2026-09-03T17:44:20.284237Z",
+    "status": "COMPLETED",
+    "ocr_confidence": null,
+    "extracted_fields": [
+      {
+        "field": "document_title",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "01_Suryodaya_Scholarship_Proposal.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "date",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "01_Suryodaya_Scholarship_Proposal.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "date",
+        "required": false
+      },
+      {
+        "field": "author",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "01_Suryodaya_Scholarship_Proposal.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "reference_number",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "01_Suryodaya_Scholarship_Proposal.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "government_higher",
+        "value": "secondary schools",
+        "confidence": 0.85,
+        "evidence": {
+          "source_document": "01_Suryodaya_Scholarship_Proposal.pdf",
+          "page": 1,
+          "evidence_snippet": "...igital learning access, and structured academic support to 500 students across 10\ngovernment higher-secondary schools.\nKey Milestones\nMilestone\nTarget Date\nBudget\nSchool & student identification\n30 Apr 2026\nI8,00,000...",
+          "confidence": 0.85
+        },
+        "field_type": "string",
+        "required": false
+      }
+    ],
+    "chunk_ids": [
+      "ba2af654-8f3d-405a-bfbe-60a7269a5b16"
+    ],
+    "raw_text_preview": "CSR PROJECT PROPOSAL\nSuryodaya Education Foundation | Demo document for CSRFlow\nProject Details\nField\nValue\nProject Name\nSuryodaya Scholarship & Digital Learning Initiative\nImplementation Partner\nUdaan Education Trust\nProject Location\nKanchipuram District, Tamil Nadu\nProject Duration\n12 months | April 2026 \u2013 March 2027\nBeneficiaries\n500 students from low-income households\nCSR Theme\nEducation and Digital Literacy\nProject Objective\nProvide scholarships, digital learning access, and structured acad",
+    "owner_id": "3a7daaa9-10af-482c-8fe4-14c8b50da66e"
+  },
+  {
+    "document_id": "1dfc384e-9b38-48c6-8cc8-a058249c90e3",
+    "filename": "02_CSR_Committee_Approval.pdf",
+    "document_type": "Other",
+    "classification_confidence": 0.20778174698352814,
+    "upload_date": "2026-09-03T17:44:39.512778Z",
+    "status": "COMPLETED",
+    "ocr_confidence": null,
+    "extracted_fields": [
+      {
+        "field": "document_title",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "02_CSR_Committee_Approval.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "date",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "02_CSR_Committee_Approval.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "date",
+        "required": false
+      },
+      {
+        "field": "author",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "02_CSR_Committee_Approval.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "reference_number",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "02_CSR_Committee_Approval.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "authorized_sign",
+        "value": "off",
+        "confidence": 0.85,
+        "evidence": {
+          "source_document": "02_CSR_Committee_Approval.pdf",
+          "page": 1,
+          "evidence_snippet": "...ires committee review.\nClosure\nFinal utilization and impact documentation required.\nAuthorized Sign-off\nChairperson, CSR Committee \u2014 Anita Rao\nHead of CSR \u2014 Rohan Mehta\nApproval Reference: CSR-APR-2026-0...",
+          "confidence": 0.85
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "approval_reference",
+        "value": "CSR-APR-2026-014",
+        "confidence": 0.85,
+        "evidence": {
+          "source_document": "02_CSR_Committee_Approval.pdf",
+          "page": 1,
+          "evidence_snippet": "...rized Sign-off\nChairperson, CSR Committee \u2014 Anita Rao\nHead of CSR \u2014 Rohan Mehta\nApproval Reference: CSR-APR-2026-014",
+          "confidence": 0.85
+        },
+        "field_type": "string",
+        "required": false
+      }
+    ],
+    "chunk_ids": [
+      "f582100f-8ff7-4799-8514-eb7aebf7fd17"
+    ],
+    "raw_text_preview": "CSR COMMITTEE APPROVAL NOTE\nSuryodaya Education Foundation | Demo document for CSRFlow\nProposal Reviewed\nField\nValue\nProject\nSuryodaya Scholarship & Digital Learning Initiative\nImplementation Partner\nUdaan Education Trust\nProposal Reference\nSEF/CSR/2026/014\nCommittee Review Date\n15 April 2026\nRequested Amount\nI65,00,000\nDecision\nAPPROVED \u2014 The CSR Committee approves the project for a total allocation of I65,00,000, subject to the\nagreed milestones, reporting requirements, and applicable internal",
+    "owner_id": "3a7daaa9-10af-482c-8fe4-14c8b50da66e"
+  },
+  {
+    "document_id": "8da7af7f-7890-4b3c-93fe-9fe23b56f973",
+    "filename": "03_Budget_Allocation_and_Disbursement.pdf",
+    "document_type": "Other",
+    "classification_confidence": 0.22849097847938538,
+    "upload_date": "2026-09-03T18:02:18.654180Z",
+    "status": "COMPLETED",
+    "ocr_confidence": null,
+    "extracted_fields": [
+      {
+        "field": "document_title",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "03_Budget_Allocation_and_Disbursement.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "date",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "03_Budget_Allocation_and_Disbursement.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "date",
+        "required": false
+      },
+      {
+        "field": "author",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "03_Budget_Allocation_and_Disbursement.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "reference_number",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "03_Budget_Allocation_and_Disbursement.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      }
+    ],
+    "chunk_ids": [
+      "abe404db-7675-4744-8279-8c86bdc7c648"
+    ],
+    "raw_text_preview": "BUDGET ALLOCATION & DISBURSEMENT\nSuryodaya Education Foundation | Demo document for CSRFlow\nApproved Allocation\nCategory\nApproved\nDisbursed\nBalance\nScholarships\nI20,00,000\nI20,00,000\nI0\nDigital learning\ninfrastructure\nI18,00,000\nI12,00,000\nI6,00,000\nTraining & academic\nsupport\nI12,00,000\nI6,00,000\nI6,00,000\nMonitoring & administration\nI8,00,000\nI2,00,000\nI6,00,000\nImpact assessment &\nreporting\nI7,00,000\nI0\nI7,00,000\nTOTAL\nI65,00,000\nI40,00,000\nI25,00,000\nDisbursement Events\nDate\nAmount\nPurpose\nS",
+    "owner_id": "3a7daaa9-10af-482c-8fe4-14c8b50da66e"
+  }
+]

@@ -11,6 +11,7 @@ import AskAI from './pages/AskAI'
 import KnowledgeGraph from './pages/KnowledgeGraph'
 import Analytics from './pages/Analytics'
 import SchemaManagement from './pages/SchemaManagement'
+import Security from './pages/Security'
 
 // Protected route wrapper
 function ProtectedRoute({ children }) {
@@ -54,6 +55,7 @@ function App() {
             <Route path="ask-ai" element={<AskAI />} />
             <Route path="knowledge-graph" element={<KnowledgeGraph />} />
             <Route path="analytics" element={<Analytics />} />
+            <Route path="security" element={<Security />} />
             <Route path="schemas" element={<SchemaManagement />} />
           </Route>
         </Routes>
