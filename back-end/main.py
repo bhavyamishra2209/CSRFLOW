@@ -1,5 +1,5 @@
 """
-Main FastAPI application entry point.
+Main FastAPI application entry point — CSRFlow
 Run with: uvicorn main:app --reload
 """
 
@@ -10,34 +10,31 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Load environment variables from .env file
+# Load .env
 env_path = Path(__file__).parent / '.env'
 if env_path.exists():
     load_dotenv(env_path)
-    logger = logging.getLogger(__name__)
-    logger.info(f"✓ Loaded environment variables from {env_path}")
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Create FastAPI app
+# ─── App ────────────────────────────────────────────────────────────────────
+
 app = FastAPI(
-    title="Document Intelligence Workspace API",
-    description="API for document processing, classification, and retrieval with RAG",
-    version="1.0.0",
+    title="CSRFlow API",
+    description="CSR Project Lifecycle Management — document intelligence + RBAC workflows",
+    version="2.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
-# Add CORS middleware
-# CORS_ORIGINS env var: comma-separated list of allowed origins.
-# Example: CORS_ORIGINS=https://myapp.onrender.com,https://myapp.vercel.app
-# Falls back to localhost only if not set — never use ["*"] with credentials.
-_raw_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:8081,http://localhost:19006")
+_raw_origins = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:5173,http://localhost:8081",
+)
 _allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 
 app.add_middleware(
@@ -48,185 +45,139 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
-# Initialize RAG engine
-logger.info("Initializing RAG engine...")
+# ─── RAG Engine (optional — existing DocuMind AI features) ──────────────────
+
 rag_engine = None
 
 try:
-    logger.info("Step 1: Creating embedding model...")
+    logger.info("Initializing RAG engine…")
     from embedding.model import create_embedding_model
     embedder = create_embedding_model()
-    logger.info("✓ Embedding model created")
-    
-    logger.info("Step 2: Creating vector database...")
+
     from storage.vector_db import FaissVectorDatabase
     vector_db = FaissVectorDatabase(dimension=embedder.dimension)
-    logger.info("✓ Vector database created")
-    
-    logger.info("Step 3: Creating LLM...")
-    import os
-    
-    # Try Ollama first (local, no internet needed)
+
     try:
         from llm.ollama_model import OllamaLLM
-        llm = OllamaLLM(model="llama2")
-        if llm.available:
-            logger.info("✓ Using Ollama LLM (Local, FREE, No Internet Needed)")
-        else:
+        llm = OllamaLLM(model="phi")
+        if not llm.available:
             raise Exception("Ollama not available")
-    except Exception as e:
-        # Fallback to HuggingFace
-        logger.warning(f"Ollama not available: {e}")
-        logger.info("Falling back to HuggingFace API...")
-        
+        logger.info("✓ Ollama LLM")
+    except Exception:
         from llm.serverless_model import HuggingFaceInferenceAPI
-        hf_token = os.getenv("HUGGINGFACE_API_KEY")
-        
-        if not hf_token:
-            logger.warning("⚠️  HUGGINGFACE_API_KEY not set!")
-            logger.warning("Get free token: https://huggingface.co/settings/tokens")
-            logger.info("OR install Ollama (local, no internet): https://ollama.ai")
-        
         llm = HuggingFaceInferenceAPI(
             model_name="mistralai/Mistral-7B-Instruct-v0.2",
-            api_key=hf_token
+            api_key=os.getenv("HUGGINGFACE_API_KEY"),
         )
-        logger.info("✓ Using HuggingFace LLM (Requires Internet)")
-    
-    logger.info("Step 4: Creating RAG engine...")
+        logger.info("✓ HuggingFace LLM")
+
     from rag.engine import RAGEngine
     rag_engine = RAGEngine(
-        embedder=embedder,
-        vector_db=vector_db,
-        llm=llm,
-        top_k=5,
-        search_type="hybrid"
+        embedder=embedder, vector_db=vector_db, llm=llm, top_k=5, search_type="hybrid"
     )
-    logger.info("✓ RAG engine initialized successfully")
-    
-except ImportError as e:
-    logger.error(f"Import error while initializing RAG engine: {e}")
-    logger.warning("Some modules may be missing. Install with: pip install -r requirements.txt")
-    logger.info("Starting API in limited mode - /health endpoint will work")
-    
-except Exception as e:
-    logger.error(f"Failed to initialize RAG engine: {e}")
-    logger.warning("Starting API without RAG engine - limited functionality")
-    import traceback
-    logger.debug(traceback.format_exc())
+    logger.info("✓ RAG engine ready")
 
-# Register routes
+except Exception as e:
+    logger.warning(f"RAG engine not available ({e}) — running without document intelligence")
+
+# ─── Register RAG-dependent routes ──────────────────────────────────────────
+
 if rag_engine:
     try:
-        logger.info("Registering API routes...")
         from routes.routes import RAGAPIRouter
-        router = RAGAPIRouter(app, rag_engine)
-        logger.info("✓ API routes registered successfully")
-
-        # Phase 3 — graph routes + Neo4j startup check
-        try:
-            from routes.graph_routes import register_graph_routes, neo4j_startup_check
-            register_graph_routes(app, rag_engine)
-            neo4j_startup_check()
-            logger.info("✓ Graph routes registered")
-        except Exception as _ge:
-            logger.warning(f"Graph routes not registered: {_ge}")
-
-        # Phase 7 — schema management routes
-        try:
-            from routes.schema_routes import register_schema_routes
-            register_schema_routes(app)
-            logger.info("✓ Schema routes registered")
-        except Exception as _se:
-            logger.warning(f"Schema routes not registered: {_se}")
-
-        # Phase 8 — analytics routes
-        try:
-            from routes.analytics_routes import register_analytics_routes
-            register_analytics_routes(app)
-            logger.info("✓ Analytics routes registered")
-        except Exception as _ae:
-            logger.warning(f"Analytics routes not registered: {_ae}")
-
-        # Security routes — hash chain, integrity, audit logging
-        try:
-            from routes.security_routes import register_security_routes
-            register_security_routes(app)
-            logger.info("✓ Security routes registered")
-        except Exception as _se:
-            logger.warning(f"Security routes not registered: {_se}")
-
-    except ImportError as e:
-        logger.error(f"Import error while registering routes: {e}")
-        logger.warning("Some dependencies may be missing")
-        logger.info("Routes will work with limited functionality")
+        RAGAPIRouter(app, rag_engine)
+        logger.info("✓ Document / RAG routes")
     except Exception as e:
-        logger.error(f"Failed to register routes: {e}")
-        logger.warning("API will only have basic endpoints")
-        import traceback
-        logger.debug(traceback.format_exc())
-else:
-    logger.warning("RAG engine not available - registering minimal endpoints only")
+        logger.warning(f"RAG routes failed: {e}")
 
-# Always available endpoints
-@app.get("/")
+    try:
+        from routes.graph_routes import register_graph_routes, neo4j_startup_check
+        register_graph_routes(app, rag_engine)
+        neo4j_startup_check()
+        logger.info("✓ Graph routes")
+    except Exception as e:
+        logger.warning(f"Graph routes failed: {e}")
+
+    try:
+        from routes.schema_routes import register_schema_routes
+        register_schema_routes(app)
+        logger.info("✓ Schema routes")
+    except Exception as e:
+        logger.warning(f"Schema routes failed: {e}")
+
+    try:
+        from routes.analytics_routes import register_analytics_routes
+        register_analytics_routes(app)
+        logger.info("✓ Analytics routes")
+    except Exception as e:
+        logger.warning(f"Analytics routes failed: {e}")
+
+# ─── CSR routes — always registered (no RAG dependency) ─────────────────────
+
+try:
+    from routes.user_routes import register_user_routes
+    register_user_routes(app)
+    logger.info("✓ User profile routes")
+except Exception as e:
+    logger.warning(f"User routes failed: {e}")
+
+try:
+    from routes.csr_routes import register_csr_routes
+    register_csr_routes(app)
+    logger.info("✓ CSR project routes")
+except Exception as e:
+    logger.warning(f"CSR routes failed: {e}")
+
+# ─── Security routes (SHA256 hash chain & audit logs) ───────────────────────
+
+try:
+    from routes.security_routes import register_security_routes
+    register_security_routes(app)
+    logger.info("✓ Security routes (hash chain & audit)")
+except Exception as e:
+    logger.warning(f"Security routes failed: {e}")
+
+# ─── Always-available endpoints ──────────────────────────────────────────────
+
+@app.get("/", tags=["System"])
 async def root():
-    """Root endpoint with API information."""
     return {
-        "name": "Document Intelligence Workspace API",
-        "version": "1.0.0",
-        "status": "operational" if rag_engine else "limited",
+        "name":       "CSRFlow API",
+        "version":    "2.0.0",
+        "status":     "operational" if rag_engine else "limited",
         "rag_engine": "ready" if rag_engine else "not initialized",
-        "docs": "/docs",
-        "health": "/health",
-        "message": "API is running" if rag_engine else "API is running in limited mode - RAG engine not initialized"
+        "docs":       "/docs",
     }
 
-@app.get("/health")
+
+@app.get("/health", tags=["System"])
 async def health_check():
-    """Health check endpoint - always available."""
     doc_count = 0
     if rag_engine:
         try:
-            # Try to get document count if method exists
-            if hasattr(rag_engine, 'count_documents'):
-                doc_count = rag_engine.count_documents()
-            elif hasattr(rag_engine, 'vector_db') and hasattr(rag_engine.vector_db, 'count'):
+            if hasattr(rag_engine, "vector_db") and hasattr(rag_engine.vector_db, "count"):
                 doc_count = rag_engine.vector_db.count()
-        except:
-            doc_count = 0
-    
+        except Exception:
+            pass
     return {
-        "status": "healthy" if rag_engine else "degraded",
-        "version": "1.0.0",
-        "rag_engine": "initialized" if rag_engine else "not initialized",
+        "status":         "healthy" if rag_engine else "degraded",
+        "version":        "2.0.0",
+        "rag_engine":     "initialized" if rag_engine else "not initialized",
         "document_count": doc_count,
-        "message": "System is operational" if rag_engine else "RAG engine not initialized - install dependencies and restart"
     }
 
-@app.get("/status")
-async def status():
-    """Detailed status endpoint."""
+
+@app.get("/status", tags=["System"])
+async def system_status():
     return {
-        "api": "running",
-        "version": "1.0.0",
+        "api":    "running",
+        "version": "2.0.0",
         "components": {
             "rag_engine": "ready" if rag_engine else "not initialized",
-            "vector_db": "ready" if rag_engine and hasattr(rag_engine, 'vector_db') else "not initialized",
-            "llm": "ready" if rag_engine and hasattr(rag_engine, 'llm') else "not initialized",
-            "embedder": "ready" if rag_engine and hasattr(rag_engine, 'embedder') else "not initialized",
         },
-        "endpoints": {
-            "root": "/",
-            "health": "/health",
-            "docs": "/docs",
-            "upload": "/upload" if rag_engine else "unavailable",
-            "query": "/query" if rag_engine else "unavailable",
-            "search": "/search" if rag_engine else "unavailable"
-        }
     }
+
 
 if __name__ == "__main__":
     import uvicorn
-    logger.info("Starting FastAPI server...")
     uvicorn.run(app, host="0.0.0.0", port=8000)

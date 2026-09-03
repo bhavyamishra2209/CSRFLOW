@@ -1,30 +1,23 @@
 """
-FastAPI auth dependencies.
+FastAPI auth dependencies — CSRFlow edition.
 
-get_current_user  — verifies a Supabase-issued Bearer JWT, returns UserInfo.
-require_admin     — extends get_current_user, requires an admin role/id.
+Exports:
+  UserInfo                  — dataclass returned by all auth deps
+  get_current_user          — verifies JWT, no DB call
+  get_current_user_with_role— verifies JWT + fetches csr_role from Supabase
+  require_admin             — requires csr_head role
+  require_role(*roles)      — factory: dependency that gates by csr_role
 
-JWT verification strategy
-─────────────────────────
-Supabase issues two JWT algorithm types depending on project age:
-  - Older projects: HS256 — verified with SUPABASE_JWT_SECRET
-  - Newer projects: ES256 — verified with Supabase's public JWKS endpoint
-
-We handle both automatically:
-1. Peek at the token header to determine the algorithm.
-2. For HS256 → verify locally with SUPABASE_JWT_SECRET.
-3. For ES256 → fetch the public key from Supabase JWKS and verify.
-
-Error responses
-───────────────
-All auth failures raise HTTP 401 with a structured JSON body:
-  { "error": "...", "detail": "human-readable reason" }
+JWT strategy
+────────────
+Supabase issues HS256 (older projects) or ES256 (newer projects).
+We detect the algorithm from the token header and verify accordingly.
 """
 
 import logging
 import os
 from dataclasses import dataclass
-from typing import Optional, Set
+from typing import List, Optional, Set
 from functools import lru_cache
 
 import jwt
@@ -36,22 +29,30 @@ logger = logging.getLogger(__name__)
 _bearer_scheme = HTTPBearer(auto_error=False)
 
 
+# ---------------------------------------------------------------------------
+# UserInfo dataclass
+# ---------------------------------------------------------------------------
+
 @dataclass
 class UserInfo:
-    user_id: str
-    email:   Optional[str] = None
-    phone:   Optional[str] = None
-    role:    str = "authenticated"
+    user_id:  str
+    email:    Optional[str] = None
+    phone:    Optional[str] = None
+    role:     str = "authenticated"   # Supabase JWT claim
+    csr_role: Optional[str] = None    # from user_profiles table
 
+
+# ---------------------------------------------------------------------------
+# Config helpers
+# ---------------------------------------------------------------------------
 
 def _jwt_secret() -> str:
     secret = os.getenv("SUPABASE_JWT_SECRET", "").strip()
     if not secret:
         raise RuntimeError(
             "SUPABASE_JWT_SECRET is not set. "
-            "Add it to your .env file (Project Settings → API → JWT Secret)."
+            "Add it to .env (Supabase Dashboard → Project Settings → API → JWT Secret)."
         )
-    # Strip Supabase's newer sb_secret_ prefix if present
     if secret.startswith("sb_secret_"):
         secret = secret[len("sb_secret_"):]
     return secret
@@ -61,7 +62,12 @@ def _supabase_url() -> str:
     return os.getenv("SUPABASE_URL", "").strip().rstrip("/")
 
 
+def _supabase_service_key() -> str:
+    return os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+
+
 def _admin_ids() -> Set[str]:
+    """Fallback: user IDs that are always treated as csr_head."""
     raw = os.getenv("ADMIN_USER_IDS", "")
     return {uid.strip() for uid in raw.split(",") if uid.strip()}
 
@@ -74,36 +80,32 @@ def _401(detail: str, error: str = "unauthorized") -> HTTPException:
     )
 
 
+# ---------------------------------------------------------------------------
+# JWKS client (ES256)
+# ---------------------------------------------------------------------------
+
 @lru_cache(maxsize=1)
 def _get_jwks_client():
-    """
-    Return a PyJWT JWKSClient pointed at the Supabase JWKS endpoint.
-    Cached for the lifetime of the process (JWKS rarely changes).
-    """
     url = _supabase_url()
     if not url:
         raise RuntimeError("SUPABASE_URL is not set.")
-    jwks_url = f"{url}/auth/v1/.well-known/jwks.json"
-    try:
-        from jwt import PyJWKClient
-        return PyJWKClient(jwks_url, cache_keys=True)
-    except Exception as e:
-        raise RuntimeError(f"Failed to create JWKS client: {e}")
+    from jwt import PyJWKClient
+    return PyJWKClient(f"{url}/auth/v1/.well-known/jwks.json", cache_keys=True)
 
+
+# ---------------------------------------------------------------------------
+# Token verification
+# ---------------------------------------------------------------------------
 
 def _verify_es256(token: str) -> dict:
-    """Verify an ES256 JWT using Supabase's public JWKS."""
     try:
         client = _get_jwks_client()
         signing_key = client.get_signing_key_from_jwt(token)
-        payload = jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=["ES256"],
-            audience="authenticated",
+        return jwt.decode(
+            token, signing_key.key,
+            algorithms=["ES256"], audience="authenticated",
             options={"verify_exp": True},
         )
-        return payload
     except jwt.ExpiredSignatureError:
         raise _401("Token has expired. Please log in again.", error="token_expired")
     except jwt.InvalidAudienceError:
@@ -117,7 +119,6 @@ def _verify_es256(token: str) -> dict:
 
 
 def _verify_hs256(token: str) -> dict:
-    """Verify an HS256 JWT using the local JWT secret."""
     try:
         secret = _jwt_secret()
     except RuntimeError as e:
@@ -127,10 +128,8 @@ def _verify_hs256(token: str) -> dict:
         )
     try:
         return jwt.decode(
-            token,
-            secret,
-            algorithms=["HS256"],
-            audience="authenticated",
+            token, secret,
+            algorithms=["HS256"], audience="authenticated",
             options={"verify_exp": True, "verify_signature": True},
         )
     except jwt.ExpiredSignatureError:
@@ -145,12 +144,52 @@ def _verify_hs256(token: str) -> dict:
         raise _401(f"Token validation failed: {e}", error="token_invalid")
 
 
+# ---------------------------------------------------------------------------
+# Supabase profile lookup
+# ---------------------------------------------------------------------------
+
+async def _fetch_csr_role(user_id: str) -> Optional[str]:
+    """
+    Fetch csr_role from user_profiles via Supabase REST API.
+    Uses service-role key so RLS is bypassed.
+    Returns None on any error — callers handle gracefully.
+    """
+    url = _supabase_url()
+    key = _supabase_service_key()
+    if not url or not key:
+        logger.warning("Supabase URL/key not set — cannot fetch csr_role")
+        return None
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                f"{url}/rest/v1/user_profiles",
+                params={"id": f"eq.{user_id}", "select": "csr_role"},
+                headers={
+                    "apikey": key,
+                    "Authorization": f"Bearer {key}",
+                    "Accept": "application/json",
+                },
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                if data:
+                    return data[0].get("csr_role")
+    except Exception as e:
+        logger.warning(f"Failed to fetch csr_role for {user_id}: {e}")
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Core FastAPI dependencies
+# ---------------------------------------------------------------------------
+
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Security(_bearer_scheme),
 ) -> UserInfo:
     """
-    FastAPI dependency. Verifies a Supabase Bearer JWT (HS256 or ES256).
-    Returns UserInfo on success. Raises 401 on any failure.
+    Verify the Bearer JWT. Returns UserInfo (csr_role is None here).
+    Use get_current_user_with_role when you need the CSR role.
     """
     if credentials is None or not credentials.credentials:
         raise _401(
@@ -161,7 +200,6 @@ async def get_current_user(
 
     token = credentials.credentials
 
-    # Peek at the header to determine algorithm — no verification yet
     try:
         header = jwt.get_unverified_header(token)
         alg = header.get("alg", "HS256")
@@ -180,28 +218,80 @@ async def get_current_user(
 
     user_id = payload.get("sub")
     if not user_id:
-        raise _401("Token does not contain a user ID (sub claim).", error="missing_sub")
+        raise _401("Token missing user ID (sub claim).", error="missing_sub")
 
     return UserInfo(
         user_id=user_id,
         email=payload.get("email"),
         phone=payload.get("phone"),
         role=payload.get("role", "authenticated"),
+        csr_role=None,
     )
 
 
-async def require_admin(
+async def get_current_user_with_role(
     user: UserInfo = Depends(get_current_user),
 ) -> UserInfo:
-    """Extends get_current_user — additionally requires admin role."""
+    """
+    Extends get_current_user — also loads csr_role from user_profiles.
+    Use this on any endpoint that needs role-based decisions.
+    """
     if user.role == "service_role":
+        user.csr_role = "csr_head"
         return user
     if user.user_id in _admin_ids():
+        user.csr_role = "csr_head"
+        return user
+    user.csr_role = await _fetch_csr_role(user.user_id)
+    return user
+
+
+async def require_admin(
+    user: UserInfo = Depends(get_current_user_with_role),
+) -> UserInfo:
+    """Requires csr_head role (or service_role / ADMIN_USER_IDS)."""
+    if user.role == "service_role" or user.user_id in _admin_ids():
+        return user
+    if user.csr_role == "csr_head":
         return user
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
         detail={
             "error":  "forbidden",
-            "detail": "Admin access required for this endpoint.",
+            "detail": "CSR Head access required.",
         },
     )
+
+
+def require_role(*allowed_roles: str):
+    """
+    Dependency factory for role-based access control.
+
+    Usage:
+        @router.post("/projects")
+        async def create_project(
+            user: UserInfo = Depends(require_role("csr_head"))
+        ):
+            ...
+    """
+    allowed: List[str] = list(allowed_roles)
+
+    async def _dep(
+        user: UserInfo = Depends(get_current_user_with_role),
+    ) -> UserInfo:
+        if user.role == "service_role" or user.user_id in _admin_ids():
+            return user
+        if user.csr_role in allowed:
+            return user
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error":  "forbidden",
+                "detail": (
+                    f"Requires role: {' or '.join(allowed)}. "
+                    f"Your role: {user.csr_role or 'none'}."
+                ),
+            },
+        )
+
+    return _dep

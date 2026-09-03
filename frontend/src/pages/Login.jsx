@@ -1,31 +1,31 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { Shield, Mail, Lock, AlertCircle } from 'lucide-react'
+import { useAuth, ROLE_LABELS } from '../context/AuthContext'
+import { Leaf, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react'
 
-function Login() {
+export default function Login() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const { signIn, signInWithMagicLink, user } = useAuth()
-  
-  const [mode, setMode] = useState('password') // 'password' or 'magic-link'
+  const { signIn, signInWithMagicLink, user, csrRole, getDashboardPath, loading } = useAuth()
+
+  const [mode, setMode] = useState('password')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  // Redirect if already logged in
+  // ── Once role is known after login, redirect to role dashboard ───────────
   useEffect(() => {
-    if (user) {
-      navigate('/dashboard')
+    if (user && csrRole && !loading) {
+      navigate(getDashboardPath(), { replace: true })
     }
-  }, [user, navigate])
+  }, [user, csrRole, loading, navigate, getDashboardPath])
 
-  // Show session expired message
+  // ── Session-expired banner ────────────────────────────────────────────────
   useEffect(() => {
     if (searchParams.get('expired') === 'true') {
-      setError('Your session has expired. Please log in again.')
+      setError('Your session has expired. Please sign in again.')
     }
   }, [searchParams])
 
@@ -33,180 +33,184 @@ function Login() {
     e.preventDefault()
     setError('')
     setSuccess('')
-    setLoading(true)
-
+    setBusy(true)
     try {
       await signIn(email, password)
-      navigate('/dashboard')
+      // redirect happens via the useEffect above once csrRole loads
     } catch (err) {
-      console.error('Login error:', err)
-      setError(err.message || 'Invalid email or password')
+      setError(err.message || 'Invalid email or password.')
     } finally {
-      setLoading(false)
+      setBusy(false)
     }
   }
 
-  const handleMagicLinkLogin = async (e) => {
+  const handleMagicLink = async (e) => {
     e.preventDefault()
     setError('')
     setSuccess('')
-    setLoading(true)
-
+    setBusy(true)
     try {
       await signInWithMagicLink(email)
-      setSuccess('Check your email for the magic link!')
+      setSuccess('Magic link sent! Check your inbox.')
     } catch (err) {
-      console.error('Magic link error:', err)
-      setError(err.message || 'Failed to send magic link')
+      setError(err.message || 'Failed to send magic link.')
     } finally {
-      setLoading(false)
+      setBusy(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Logo and title */}
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+
+        {/* ── Brand ── */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-full mb-4">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-600 rounded-2xl mb-4 shadow-lg">
+            <Leaf className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">DocuMind AI</h1>
-          <p className="text-gray-600">Document Intelligence System</p>
+          <h1 className="text-3xl font-bold text-gray-900">CSRFlow</h1>
+          <p className="text-gray-500 mt-1 text-sm">CSR Project Lifecycle Management</p>
         </div>
 
-        {/* Login card */}
-        <div className="card p-8">
-          {/* Session expired alert */}
+        {/* ── Card ── */}
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+
+          {/* Alerts */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="mb-5 flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
-
-          {/* Success message */}
           {success && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-sm text-green-700">{success}</p>
+            <div className="mb-5 flex items-start gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+              <CheckCircle className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-emerald-700">{success}</p>
             </div>
           )}
 
           {/* Mode tabs */}
-          <div className="flex space-x-2 mb-6 border-b border-gray-200">
-            <button
-              onClick={() => setMode('password')}
-              className={`flex-1 pb-3 text-sm font-medium transition-colors ${
-                mode === 'password'
-                  ? 'text-primary-600 border-b-2 border-primary-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Password Login
-            </button>
-            <button
-              onClick={() => setMode('magic-link')}
-              className={`flex-1 pb-3 text-sm font-medium transition-colors ${
-                mode === 'magic-link'
-                  ? 'text-primary-600 border-b-2 border-primary-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Magic Link
-            </button>
+          <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
+            {['password', 'magic-link'].map((m) => (
+              <button
+                key={m}
+                onClick={() => { setMode(m); setError(''); setSuccess('') }}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${mode === m
+                    ? 'bg-white text-emerald-700 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                  }`}
+              >
+                {m === 'password' ? 'Password' : 'Magic Link'}
+              </button>
+            ))}
           </div>
 
-          {/* Password login form */}
+          {/* Password form */}
           {mode === 'password' && (
             <form onSubmit={handlePasswordLogin} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="input pl-10"
-                    placeholder="you@example.com"
                     required
+                    placeholder="you@company.com"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
               </div>
-
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                    id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="input pl-10"
-                    placeholder="••••••••"
                     required
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
               </div>
-
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full btn btn-primary"
+                disabled={busy}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors text-sm mt-2"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {busy ? 'Signing in…' : 'Sign In'}
               </button>
             </form>
           )}
 
-          {/* Magic link form */}
+          {/* Magic-link form */}
           {mode === 'magic-link' && (
-            <form onSubmit={handleMagicLinkLogin} className="space-y-4">
+            <form onSubmit={handleMagicLink} className="space-y-4">
               <div>
-                <label htmlFor="email-magic" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
-                    id="email-magic"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="input pl-10"
-                    placeholder="you@example.com"
                     required
+                    placeholder="you@company.com"
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
-                <p className="mt-2 text-xs text-gray-500">
-                  We'll send you a magic link to sign in without a password
+                <p className="mt-1.5 text-xs text-gray-400">
+                  We'll email you a one-click sign-in link — no password needed.
                 </p>
               </div>
-
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full btn btn-primary"
+                disabled={busy}
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors text-sm mt-2"
               >
-                {loading ? 'Sending...' : 'Send Magic Link'}
+                {busy ? 'Sending…' : 'Send Magic Link'}
               </button>
             </form>
           )}
         </div>
 
-        {/* Footer note */}
-        <p className="text-center text-sm text-gray-600 mt-6">
-          Secure authentication powered by Supabase
+        {/* Role legend */}
+        <div className="mt-6 bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
+            Available roles
+          </p>
+          <div className="space-y-2">
+            {[
+              { role: 'csr_head', icon: '👩‍💼', desc: 'Creates & manages all CSR projects' },
+              { role: 'project_manager', icon: '👨‍💻', desc: 'Executes assigned projects & uploads docs' },
+              { role: 'approver', icon: '🧑‍⚖️', desc: 'Reviews proposals & approves stages' },
+            ].map(({ role, icon, desc }) => (
+              <div key={role} className="flex items-center gap-2.5">
+                <span className="text-base">{icon}</span>
+                <div>
+                  <span className="text-xs font-semibold text-gray-700">
+                    {ROLE_LABELS[role]}
+                  </span>
+                  <span className="text-xs text-gray-400 ml-1.5">— {desc}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-gray-400 mt-4">
+          Secured with Supabase Auth + JWT · RBAC enforced server-side
         </p>
       </div>
     </div>
   )
 }
-
-export default Login
