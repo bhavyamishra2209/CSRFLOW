@@ -56,8 +56,83 @@ DOCUMENT_TYPES = {
         "name": "Other",
         "description": "Miscellaneous documents, letters, notices, memos, reports, statements that don't fit other categories",
         "keywords": ["document", "letter", "notice", "memo", "report", "statement"]
+    },
+    # ── CSR Document Types ─────────────────────────────────────────
+    "PROJECT_PROPOSAL": {
+        "name": "Project Proposal",
+        "description": "CSR project proposal document detailing implementing agency, target beneficiaries, total budget, project duration, objectives, location, and CSR schedule",
+        "keywords": ["project proposal", "implementing agency", "target beneficiaries", "total budget", "project duration", "objectives", "csr schedule", "proposal"]
+    },
+    "BUDGET_SHEET": {
+        "name": "Budget Sheet",
+        "description": "CSR project financial budget sheet detailing allocated budget, spent amount, unspent amount, financial year, and category-wise budget allocations",
+        "keywords": ["budget sheet", "financial year", "allocated budget", "spent amount", "unspent amount", "budget categories", "csr budget"]
+    },
+    "PROGRESS_REPORT": {
+        "name": "Progress Report",
+        "description": "CSR project periodic progress report tracking milestones achieved, funds utilized, beneficiary count, reporting period, and project challenges",
+        "keywords": ["progress report", "reporting period", "milestones achieved", "funds utilized", "beneficiary count", "csr progress"]
+    },
+    "UTILIZATION_CERTIFICATE": {
+        "name": "Utilization Certificate",
+        "description": "CSR utilization certificate (UC) certifying proper utilization of CSR funds signed by a chartered accountant with UC number, certified amount, and percentage",
+        "keywords": ["utilization certificate", "uc number", "certified amount", "utilization percentage", "chartered accountant", "csr uc", "funds utilized"]
+    },
+    "COMPLETION_REPORT": {
+        "name": "Completion Report",
+        "description": "CSR project final completion report detailing project completion date, final cost, target achieved, impact summary, and final project outcomes",
+        "keywords": ["completion report", "completion date", "final cost", "target achieved", "impact summary", "project completed"]
+    },
+    "COMPLIANCE_CERTIFICATE": {
+        "name": "Compliance Certificate",
+        "description": "CSR statutory compliance certificate confirming compliance with CSR provisions, Companies Act rules, financial year compliance status, and authorized signatures",
+        "keywords": ["compliance certificate", "compliance status", "companies act", "csr compliance", "statutory compliance", "issue date"]
+    },
+    "PARTNERSHIP_AGREEMENT": {
+        "name": "Partnership Agreement",
+        "description": "CSR partnership agreement or Memorandum of Understanding (MOU) between corporate entity and implementing agency / partner organization",
+        "keywords": ["partnership agreement", "partner organization", "implementing agency", "funding amount", "validity period", "mou", "csr agreement"]
+    },
+    "AUDIT_REPORT": {
+        "name": "Audit Report",
+        "description": "CSR financial and governance audit report issued by an independent auditor detailing audit opinion, audit report number, financial year, and findings",
+        "keywords": ["audit report", "auditor name", "audit opinion", "audit date", "csr audit", "independent auditor", "audit report number"]
+    },
+    "IMPACT_ASSESSMENT_REPORT": {
+        "name": "Impact Assessment Report",
+        "description": "CSR social impact assessment report evaluating project outcomes, assessing agency, impact score, key findings, assessment period, and beneficiary feedback",
+        "keywords": ["impact assessment report", "assessing agency", "impact score", "key findings", "assessment period", "social impact", "csr impact"]
+    },
+    "CSR_POLICY_DOCUMENT": {
+        "name": "CSR Policy Document",
+        "description": "Corporate CSR policy document outlining corporate social responsibility vision, focus areas, CSR committee members, approval date, and policy version",
+        "keywords": ["csr policy document", "policy version", "csr vision", "focus areas", "csr committee", "approval date", "csr policy"]
     }
 }
+
+CSR_DOCUMENT_TYPES = [
+    "Project Proposal",
+    "Budget Sheet",
+    "Progress Report",
+    "Utilization Certificate",
+    "Completion Report",
+    "Compliance Certificate",
+    "Partnership Agreement",
+    "Audit Report",
+    "Impact Assessment Report",
+    "CSR Policy Document"
+]
+
+
+def is_csr_type(document_type: str) -> bool:
+    """
+    Check whether a given document type string corresponds to a CSR document type.
+    Case-insensitive matching is supported.
+    """
+    if not document_type:
+        return False
+    doc_type_lower = document_type.strip().lower()
+    return any(csr_type.lower() == doc_type_lower for csr_type in CSR_DOCUMENT_TYPES)
 
 
 def get_document_type_list() -> List[str]:
@@ -78,3 +153,4 @@ def get_document_type_keywords() -> Dict[str, List[str]]:
 def get_all_document_types() -> Dict[str, Dict]:
     """Get complete document type definitions."""
     return {key: value for key, value in DOCUMENT_TYPES.items()}
+

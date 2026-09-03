@@ -1,0 +1,36 @@
+{
+  "document_type": "CSR Policy Document",
+  "description": "Corporate policy document outlining company CSR mandate, strategy, committee, and focus sectors",
+  "fields": [
+    {
+      "name": "company_name",
+      "type": "string",
+      "description": "Name of the corporate entity",
+      "required": true
+    },
+    {
+      "name": "policy_version",
+      "type": "string",
+      "description": "Policy version identifier or number",
+      "required": true
+    },
+    {
+      "name": "approval_date",
+      "type": "date",
+      "description": "Date policy was approved by Board",
+      "required": true
+    },
+    {
+      "name": "focus_areas",
+      "type": "string",
+      "description": "Target CSR focus themes and sectors",
+      "required": true
+    },
+    {
+      "name": "csr_committee_members",
+      "type": "string",
+      "description": "Members of Board CSR Committee",
+      "required": false
+    }
+  ]
+}

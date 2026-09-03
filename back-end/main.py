@@ -82,35 +82,79 @@ except Exception as e:
 
 # ─── Register RAG-dependent routes ──────────────────────────────────────────
 
-if rag_engine:
-    try:
-        from routes.routes import RAGAPIRouter
-        RAGAPIRouter(app, rag_engine)
-        logger.info("✓ Document / RAG routes")
-    except Exception as e:
-        logger.warning(f"RAG routes failed: {e}")
+# Register routes
+try:
+    logger.info("Registering API routes...")
+    from routes.routes import RAGAPIRouter
+    router = RAGAPIRouter(app, rag_engine)
+    logger.info("✓ API routes registered successfully")
 
+    # Phase 3 — graph routes + Neo4j startup check
     try:
         from routes.graph_routes import register_graph_routes, neo4j_startup_check
         register_graph_routes(app, rag_engine)
         neo4j_startup_check()
-        logger.info("✓ Graph routes")
-    except Exception as e:
-        logger.warning(f"Graph routes failed: {e}")
+        logger.info("✓ Graph routes registered")
+    except Exception as _ge:
+        logger.warning(f"Graph routes not registered: {_ge}")
 
+    # Phase 7 — schema management routes
     try:
         from routes.schema_routes import register_schema_routes
         register_schema_routes(app)
-        logger.info("✓ Schema routes")
-    except Exception as e:
-        logger.warning(f"Schema routes failed: {e}")
+        logger.info("✓ Schema routes registered")
+    except Exception as _se:
+        logger.warning(f"Schema routes not registered: {_se}")
 
+    # Phase 8 — analytics routes
     try:
         from routes.analytics_routes import register_analytics_routes
         register_analytics_routes(app)
-        logger.info("✓ Analytics routes")
-    except Exception as e:
-        logger.warning(f"Analytics routes failed: {e}")
+        logger.info("✓ Analytics routes registered")
+    except Exception as _ae:
+        logger.warning(f"Analytics routes not registered: {_ae}")
+
+    # CSR Case routes
+    try:
+        from routes.case_routes import register_case_routes
+        register_case_routes(app)
+        logger.info("✓ Case routes registered")
+    except Exception as _ce:
+        logger.warning(f"Case routes not registered: {_ce}")
+
+    # CSR Approval Workflow routes
+    try:
+        from routes.workflow_routes import register_workflow_routes
+        register_workflow_routes(app)
+        logger.info("✓ Approval Workflow routes registered")
+    except Exception as _we:
+        logger.warning(f"Workflow routes not registered: {_we}")
+
+    # CSR Milestone & Timeline Tracking routes
+    try:
+        from routes.milestone_routes import register_milestone_routes
+        register_milestone_routes(app)
+        logger.info("✓ Milestone & Timeline routes registered")
+    except Exception as _me:
+        logger.warning(f"Milestone routes not registered: {_me}")
+
+    # CSR Duplicate & Statutory Compliance routes
+    try:
+        from routes.compliance_routes import register_compliance_routes
+        register_compliance_routes(app)
+        logger.info("✓ Duplicate & Compliance routes registered")
+    except Exception as _cpe:
+        logger.warning(f"Compliance routes not registered: {_cpe}")
+
+except ImportError as e:
+    logger.error(f"Import error while registering routes: {e}")
+    logger.warning("Some dependencies may be missing")
+    logger.info("Routes will work with limited functionality")
+except Exception as e:
+    logger.error(f"Failed to register routes: {e}")
+    logger.warning("API will only have basic endpoints")
+    import traceback
+    logger.debug(traceback.format_exc())
 
 # ─── CSR routes — always registered (no RAG dependency) ─────────────────────
 

@@ -1,0 +1,54 @@
+{
+  "document_type": "Utilization Certificate",
+  "description": "Statutory utilization certificate certifying utilization of CSR funds signed by a Chartered Accountant",
+  "fields": [
+    {
+      "name": "uc_number",
+      "type": "string",
+      "description": "Unique Utilization Certificate reference number",
+      "required": true
+    },
+    {
+      "name": "project_title",
+      "type": "string",
+      "description": "Title of the certified CSR project",
+      "required": true
+    },
+    {
+      "name": "implementing_agency",
+      "type": "string",
+      "description": "Name of implementing partner/agency",
+      "required": true
+    },
+    {
+      "name": "financial_year",
+      "type": "string",
+      "description": "Financial year covered by certificate",
+      "required": true
+    },
+    {
+      "name": "certified_amount",
+      "type": "number",
+      "description": "Amount certified as properly utilized in INR",
+      "required": true
+    },
+    {
+      "name": "utilization_percentage",
+      "type": "number",
+      "description": "Percentage of allocated funds utilized",
+      "required": false
+    },
+    {
+      "name": "certification_date",
+      "type": "date",
+      "description": "Date of certificate issuance",
+      "required": true
+    },
+    {
+      "name": "chartered_accountant_name",
+      "type": "string",
+      "description": "Name or firm of certifying Chartered Accountant",
+      "required": false
+    }
+  ]
+}
