@@ -1,149 +1,182 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://documind-ai-backend.onrender.com'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
-// Get auth token from session
+// ── Auth token ────────────────────────────────────────────────────────────
+
 const getAuthToken = () => {
-  const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}')
-  return session.access_token || null
+  try {
+    const session = JSON.parse(localStorage.getItem('supabase.auth.token') || '{}')
+    return session.access_token || null
+  } catch {
+    return null
+  }
 }
 
-// Base fetch with auth and error handling
+// ── Base fetch ────────────────────────────────────────────────────────────
+
 async function fetchAPI(endpoint, options = {}) {
   const token = getAuthToken()
-  
+
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   }
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-  
-  const config = {
-    ...options,
-    headers,
-  }
-  
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
-    
-    // Handle 401 Unauthorized
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
+    })
+
     if (response.status === 401) {
-      // Clear session and redirect to login
       localStorage.removeItem('supabase.auth.token')
       window.location.href = '/login?expired=true'
       throw new Error('Session expired. Please log in again.')
     }
-    
-    // Handle other errors
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`)
+      const err = await response.json().catch(() => ({}))
+      // FastAPI wraps detail as object or string
+      const msg =
+        typeof err.detail === 'string'
+          ? err.detail
+          : err.detail?.detail || err.message || `HTTP ${response.status}`
+      throw new Error(msg)
     }
-    
-    // Handle empty responses
-    const contentType = response.headers.get('content-type')
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json()
-    }
-    
-    return await response.text()
+
+    const ct = response.headers.get('content-type') || ''
+    return ct.includes('application/json') ? response.json() : response.text()
   } catch (error) {
-    console.error(`API Error [${endpoint}]:`, error)
+    console.error(`API [${endpoint}]:`, error)
     throw error
   }
 }
 
-// API client methods
+// ── File upload (no Content-Type — browser sets multipart boundary) ────────
+
+async function uploadFile(endpoint, file) {
+  const token = getAuthToken()
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: 'POST',
+    headers: { Authorization: token ? `Bearer ${token}` : '' },
+    body: formData,
+  })
+
+  if (response.status === 401) {
+    localStorage.removeItem('supabase.auth.token')
+    window.location.href = '/login?expired=true'
+    throw new Error('Session expired.')
+  }
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.detail || 'Upload failed')
+  }
+  return response.json()
+}
+
+// ── API surface ───────────────────────────────────────────────────────────
+
 export const api = {
-  // System health check
-  health: async () => {
-    return fetchAPI('/health')
-  },
-  
-  // Document upload
-  upload: async (file) => {
-    const token = getAuthToken()
-    const formData = new FormData()
-    formData.append('file', file)
-    
-    const response = await fetch(`${API_BASE_URL}/upload`, {
+  // ── System ──────────────────────────────────────────────────────────────
+  health: () => fetchAPI('/health'),
+
+  // ── User profile ─────────────────────────────────────────────────────────
+  /** Returns { id, email, full_name, organisation, csr_role, is_active, ... } */
+  getMyProfile: () => fetchAPI('/users/me/profile'),
+
+  updateMyProfile: (data) =>
+    fetchAPI('/users/me/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** csr_head only — list every user */
+  listUsers: () => fetchAPI('/admin/users'),
+
+  /** csr_head only — change a user's role */
+  assignRole: (userId, csr_role) =>
+    fetchAPI(`/admin/users/${userId}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ csr_role }),
+    }),
+
+  // ── CSR Projects ──────────────────────────────────────────────────────────
+  /** csr_head — create a project */
+  createProject: (data) =>
+    fetchAPI('/projects', {
       method: 'POST',
-      headers: {
-        'Authorization': token ? `Bearer ${token}` : '',
-      },
-      body: formData,
-    })
-    
-    if (response.status === 401) {
-      localStorage.removeItem('supabase.auth.token')
-      window.location.href = '/login?expired=true'
-      throw new Error('Session expired. Please log in again.')
-    }
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.detail || errorData.message || 'Upload failed')
-    }
-    
-    return await response.json()
-  },
-  
-  // List documents
-  documentsList: async () => {
-    return fetchAPI('/documents/list')
-  },
-  
-  // Get document by ID
-  getDocument: async (documentId) => {
-    return fetchAPI(`/documents/${documentId}`)
-  },
-  
-  // Verify document
-  verifyDocument: async (documentId) => {
-    return fetchAPI(`/documents/${documentId}/verify`, {
+      body: JSON.stringify(data),
+    }),
+
+  /** All roles — scoped list */
+  listProjects: () => fetchAPI('/projects'),
+
+  /** All roles — single project */
+  getProject: (id) => fetchAPI(`/projects/${id}`),
+
+  /** csr_head / pm — update title, domain, budget, description */
+  updateProject: (id, data) =>
+    fetchAPI(`/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** csr_head — assign PM + approver */
+  assignMembers: (id, data) =>
+    fetchAPI(`/projects/${id}/assign`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** Role-gated stage transition */
+  transitionStage: (id, new_stage, comment = '') =>
+    fetchAPI(`/projects/${id}/stage`, {
       method: 'POST',
-    })
-  },
-  
-  // Query AI
-  query: async (queryText, useKg = false) => {
-    return fetchAPI('/query', {
+      body: JSON.stringify({ new_stage, comment }),
+    }),
+
+  /** Add milestone */
+  addMilestone: (projectId, data) =>
+    fetchAPI(`/projects/${projectId}/milestones`, {
       method: 'POST',
-      body: JSON.stringify({
-        query: queryText,
-        use_kg: useKg,
-      }),
-    })
-  },
-  
-  // Knowledge graph visualization
-  kgVisualize: async () => {
-    return fetchAPI('/kg/visualize')
-  },
-  
-  // Get user statistics
-  userStats: async () => {
-    return fetchAPI('/users/me/stats')
-  },
-  
-  // Get schema for document type
-  getSchema: async (docType) => {
-    return fetchAPI(`/schemas/${encodeURIComponent(docType)}`)
-  },
-  
-  // Update schema for document type
-  updateSchema: async (docType, schemaData) => {
-    return fetchAPI(`/schemas/${encodeURIComponent(docType)}`, {
+      body: JSON.stringify(data),
+    }),
+
+  /** Update milestone */
+  updateMilestone: (projectId, milestoneId, data) =>
+    fetchAPI(`/projects/${projectId}/milestones/${milestoneId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  /** csr_head / approver — full stage history */
+  getProjectHistory: (id) => fetchAPI(`/projects/${id}/history`),
+
+  /** csr_head — aggregate stats */
+  projectStats: () => fetchAPI('/projects/stats/summary'),
+
+  // ── Legacy DocuMind AI routes ─────────────────────────────────────────────
+  upload: (file) => uploadFile('/upload', file),
+  documentsList: () => fetchAPI('/documents/list'),
+  getDocument: (id) => fetchAPI(`/documents/${id}`),
+  verifyDocument: (id) =>
+    fetchAPI(`/documents/${id}/verify`, { method: 'POST' }),
+  query: (queryText, useKg = false) =>
+    fetchAPI('/query', {
+      method: 'POST',
+      body: JSON.stringify({ query: queryText, use_kg: useKg }),
+    }),
+  kgVisualize: () => fetchAPI('/kg/visualize'),
+  userStats: () => fetchAPI('/users/me/stats'),
+  getSchema: (docType) => fetchAPI(`/schemas/${encodeURIComponent(docType)}`),
+  updateSchema: (docType, schemaData) =>
+    fetchAPI(`/schemas/${encodeURIComponent(docType)}`, {
       method: 'PUT',
       body: JSON.stringify(schemaData),
-    })
-  },
-  
-  // Get current user info
-  getCurrentUser: async () => {
-    return fetchAPI('/users/me')
-  },
+    }),
 }
 
 export default api
