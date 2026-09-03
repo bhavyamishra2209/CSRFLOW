@@ -59,7 +59,7 @@ try:
 
     try:
         from llm.ollama_model import OllamaLLM
-        llm = OllamaLLM(model="llama2")
+        llm = OllamaLLM(model="phi")
         if not llm.available:
             raise Exception("Ollama not available")
         logger.info("✓ Ollama LLM")
