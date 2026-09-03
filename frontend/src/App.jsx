@@ -11,6 +11,7 @@ import CSRHeadDashboard from './pages/csr/CSRHeadDashboard'
 import ProjectManagerDashboard from './pages/csr/ProjectManagerDashboard'
 import ApproverDashboard from './pages/csr/ApproverDashboard'
 import CreateProject from './pages/csr/CreateProject'
+import ProjectDetail from './pages/csr/ProjectDetail'
 
 // Pages — legacy DocuMind AI (all roles can access these)
 import Dashboard from './pages/Dashboard'
@@ -122,7 +123,7 @@ function AppRoutes() {
           }
         />
         <Route path="csr/projects" element={<Documents />} />
-        <Route path="csr/projects/:id" element={<DocumentDetail />} />
+        <Route path="csr/projects/:id" element={<ProjectDetail />} />
 
         {/* Team management — CSR Head only */}
         <Route
