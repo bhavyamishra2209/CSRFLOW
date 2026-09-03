@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   X,
+  FolderGit2,
 } from 'lucide-react'
 
 function Layout() {
@@ -75,6 +76,7 @@ function Layout() {
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Projects', href: '/projects', icon: FolderGit2 },
     { name: 'Upload', href: '/upload', icon: Upload },
     { name: 'Documents', href: '/documents', icon: FileText },
     { name: 'Ask AI', href: '/ask-ai', icon: MessageSquare },

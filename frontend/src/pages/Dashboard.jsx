@@ -10,6 +10,7 @@ import {
   TrendingUp,
   CheckCircle,
   AlertCircle,
+  FolderGit2,
 } from 'lucide-react'
 
 function Dashboard() {
@@ -35,6 +36,13 @@ function Dashboard() {
   }
 
   const quickActions = [
+    {
+      name: 'CSR Projects',
+      description: 'Manage 9-stage CSR project lifecycles',
+      icon: FolderGit2,
+      href: '/projects',
+      color: 'bg-indigo-600',
+    },
     {
       name: 'Upload Document',
       description: 'Add new documents for processing',

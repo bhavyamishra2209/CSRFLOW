@@ -144,6 +144,75 @@ export const api = {
   getCurrentUser: async () => {
     return fetchAPI('/users/me')
   },
+
+  // ── CSR Project Lifecycle Methods (Feature #1) ───────────────────────────
+  // List projects (optional stage filter)
+  projectsList: async (stage = null) => {
+    const query = stage ? `?stage=${encodeURIComponent(stage)}` : ''
+    return fetchAPI(`/projects${query}`)
+  },
+
+  // Get single project
+  getProject: async (projectId) => {
+    return fetchAPI(`/projects/${projectId}`)
+  },
+
+  // Create project
+  createProject: async (projectData) => {
+    return fetchAPI('/projects', {
+      method: 'POST',
+      body: JSON.stringify(projectData),
+    })
+  },
+
+  // Update project metadata
+  updateProject: async (projectId, updateData) => {
+    return fetchAPI(`/projects/${projectId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    })
+  },
+
+  // Transition stage
+  transitionProjectStage: async (projectId, targetStage, comments = null) => {
+    return fetchAPI(`/projects/${projectId}/stage`, {
+      method: 'POST',
+      body: JSON.stringify({
+        target_stage: targetStage,
+        comments: comments,
+      }),
+    })
+  },
+
+  // Get allowed next stages
+  getAllowedStages: async (projectId) => {
+    return fetchAPI(`/projects/${projectId}/stages/allowed`)
+  },
+
+  // Link document to project
+  linkProjectDocument: async (projectId, documentId) => {
+    return fetchAPI(`/projects/${projectId}/documents`, {
+      method: 'POST',
+      body: JSON.stringify({ document_id: documentId }),
+    })
+  },
+
+  // Unlink document from project
+  unlinkProjectDocument: async (projectId, documentId) => {
+    return fetchAPI(`/projects/${projectId}/documents/${documentId}`, {
+      method: 'DELETE',
+    })
+  },
+
+  // Get linked documents
+  getProjectDocuments: async (projectId) => {
+    return fetchAPI(`/projects/${projectId}/documents`)
+  },
+
+  // Get project audit trail
+  getProjectAudit: async (projectId) => {
+    return fetchAPI(`/projects/${projectId}/audit`)
+  },
 }
 
 export default api
