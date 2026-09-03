@@ -171,6 +171,14 @@ try:
     except Exception as _me:
         logger.warning(f"Milestone routes not registered: {_me}")
 
+    # CSR Duplicate & Statutory Compliance routes
+    try:
+        from routes.compliance_routes import register_compliance_routes
+        register_compliance_routes(app)
+        logger.info("✓ Duplicate & Compliance routes registered")
+    except Exception as _cpe:
+        logger.warning(f"Compliance routes not registered: {_cpe}")
+
 except ImportError as e:
     logger.error(f"Import error while registering routes: {e}")
     logger.warning("Some dependencies may be missing")
