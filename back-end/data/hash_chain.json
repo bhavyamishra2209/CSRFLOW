@@ -46,5 +46,21 @@
       "classification_confidence": 0.22849097847938538
     },
     "hash": "5840d729050ee8d2f886f462f56bd55c6dac692f9a884f6af860935a5554d9bf"
+  },
+  {
+    "index": 3,
+    "timestamp": "2026-09-03T19:03:27.063499",
+    "document_id": "9acf77a3-a38a-4d3f-9da2-6e7d0cea4e5e",
+    "document_type": "Other",
+    "file_hash": "ee0939622421aa3523dd9be0697ac5746053974348b2712ffa9d2500d898da5c",
+    "user_id": "ea551d82-b9e8-4e36-88fb-7fc4ab29950f",
+    "previous_hash": "5840d729050ee8d2f886f462f56bd55c6dac692f9a884f6af860935a5554d9bf",
+    "metadata": {
+      "filename": "04_Quarterly_Progress_Report.pdf",
+      "size_bytes": 2962,
+      "chunk_count": 1,
+      "classification_confidence": 0.26006245613098145
+    },
+    "hash": "d7703f4b1895d38d82313b0acc6ae7ae41fbae3bee8eec5ea5606e161d5c922c"
   }
 ]

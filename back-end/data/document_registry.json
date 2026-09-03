@@ -241,5 +241,86 @@
     ],
     "raw_text_preview": "BUDGET ALLOCATION & DISBURSEMENT\nSuryodaya Education Foundation | Demo document for CSRFlow\nApproved Allocation\nCategory\nApproved\nDisbursed\nBalance\nScholarships\nI20,00,000\nI20,00,000\nI0\nDigital learning\ninfrastructure\nI18,00,000\nI12,00,000\nI6,00,000\nTraining & academic\nsupport\nI12,00,000\nI6,00,000\nI6,00,000\nMonitoring & administration\nI8,00,000\nI2,00,000\nI6,00,000\nImpact assessment &\nreporting\nI7,00,000\nI0\nI7,00,000\nTOTAL\nI65,00,000\nI40,00,000\nI25,00,000\nDisbursement Events\nDate\nAmount\nPurpose\nS",
     "owner_id": "3a7daaa9-10af-482c-8fe4-14c8b50da66e"
+  },
+  {
+    "document_id": "9acf77a3-a38a-4d3f-9da2-6e7d0cea4e5e",
+    "filename": "04_Quarterly_Progress_Report.pdf",
+    "document_type": "Other",
+    "classification_confidence": 0.26006245613098145,
+    "upload_date": "2026-09-03T19:03:27.056598Z",
+    "status": "COMPLETED",
+    "ocr_confidence": null,
+    "extracted_fields": [
+      {
+        "field": "document_title",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "04_Quarterly_Progress_Report.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "date",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "04_Quarterly_Progress_Report.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "date",
+        "required": false
+      },
+      {
+        "field": "author",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "04_Quarterly_Progress_Report.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "reference_number",
+        "value": null,
+        "confidence": 0.0,
+        "evidence": {
+          "source_document": "04_Quarterly_Progress_Report.pdf",
+          "page": 0,
+          "evidence_snippet": "Value not found in document",
+          "confidence": 0.0
+        },
+        "field_type": "string",
+        "required": false
+      },
+      {
+        "field": "digital_learning_setup_is_behind_schedule",
+        "value": "7 of 10 schools are operational. The partner expects the remaining 3",
+        "confidence": 0.85,
+        "evidence": {
+          "source_document": "04_Quarterly_Progress_Report.pdf",
+          "page": 1,
+          "evidence_snippet": "...ns available for\nsubsequent milestones.\nRisk / Exception\nDigital learning setup is behind schedule: 7 of 10 schools are operational. The partner expects the remaining 3\ninstallations by 15 September 2026 due to vendor delivery delays.\nNext Actions\nComplete remaining i...",
+          "confidence": 0.85
+        },
+        "field_type": "string",
+        "required": false
+      }
+    ],
+    "chunk_ids": [
+      "01453242-3a73-4381-a32f-360e123600db"
+    ],
+    "raw_text_preview": "QUARTERLY PROGRESS REPORT\nUdaan Education Trust | Q2 FY 2026\u201327 | Demo document for CSRFlow\nProject Status\nMetric\nPlanned\nCurrent\nStatus\nStudents enrolled\n500\n500\nOn track\nSchools covered\n10\n10\nCompleted\nScholarships disbursed\n500\n500\nCompleted\nDigital learning setups\n10\n7\nAt risk\nAcademic support sessions\n30\n24\nOn track\nFinancial Progress\nI40,00,000 of the I65,00,000 approved budget has been disbursed. I25,00,000 remains available for\nsubsequent milestones.\nRisk / Exception\nDigital learning set",
+    "owner_id": "ea551d82-b9e8-4e36-88fb-7fc4ab29950f"
   }
 ]
