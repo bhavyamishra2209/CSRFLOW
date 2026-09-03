@@ -155,6 +155,14 @@ try:
     except Exception as _ce:
         logger.warning(f"Case routes not registered: {_ce}")
 
+    # CSR Approval Workflow routes
+    try:
+        from routes.workflow_routes import register_workflow_routes
+        register_workflow_routes(app)
+        logger.info("✓ Approval Workflow routes registered")
+    except Exception as _we:
+        logger.warning(f"Workflow routes not registered: {_we}")
+
 except ImportError as e:
     logger.error(f"Import error while registering routes: {e}")
     logger.warning("Some dependencies may be missing")
