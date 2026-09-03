@@ -163,6 +163,14 @@ try:
     except Exception as _we:
         logger.warning(f"Workflow routes not registered: {_we}")
 
+    # CSR Milestone & Timeline Tracking routes
+    try:
+        from routes.milestone_routes import register_milestone_routes
+        register_milestone_routes(app)
+        logger.info("✓ Milestone & Timeline routes registered")
+    except Exception as _me:
+        logger.warning(f"Milestone routes not registered: {_me}")
+
 except ImportError as e:
     logger.error(f"Import error while registering routes: {e}")
     logger.warning("Some dependencies may be missing")
