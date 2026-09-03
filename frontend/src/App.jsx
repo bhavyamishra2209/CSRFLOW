@@ -10,6 +10,7 @@ import Login from './pages/Login'
 import CSRHeadDashboard from './pages/csr/CSRHeadDashboard'
 import ProjectManagerDashboard from './pages/csr/ProjectManagerDashboard'
 import ApproverDashboard from './pages/csr/ApproverDashboard'
+import CreateProject from './pages/csr/CreateProject'
 
 // Pages — legacy DocuMind AI (all roles can access these)
 import Dashboard from './pages/Dashboard'
@@ -111,7 +112,15 @@ function AppRoutes() {
         />
 
         {/* ── Shared CSR pages (all roles) ── */}
-        {/* Project list / detail — role-scoping is handled server-side */}
+        {/* NEW must come before :id so "new" isn't treated as a project ID */}
+        <Route
+          path="csr/projects/new"
+          element={
+            <RoleRoute allowed={['csr_head']}>
+              <CreateProject />
+            </RoleRoute>
+          }
+        />
         <Route path="csr/projects" element={<Documents />} />
         <Route path="csr/projects/:id" element={<DocumentDetail />} />
 
@@ -158,7 +167,12 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <AppRoutes />
       </Router>
     </AuthProvider>
