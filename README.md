@@ -1,193 +1,181 @@
 CSRFlow
-
 AI-Powered CSR Project Lifecycle & Compliance Platform
-
-CSRFlow helps organizations manage Corporate Social Responsibility projects from proposal to closure by combining AI-powered document intelligence, structured workflows, compliance checks, milestone tracking, and a tamper-evident audit trail.
-
+CSRFlow is an AI-powered platform that manages the complete Corporate Social Responsibility (CSR) project lifecycle — from proposal to closure. It centralizes documents, approvals, budgets, milestones, compliance checks, and reports while using AI to extract information, answer questions, and flag potential inconsistencies.
 🚀 Key Features
-📄 AI Document Intelligence — OCR, classification, and structured data extraction from PDF, DOCX, TXT, and images.
-🔎 Hybrid AI Search — FAISS semantic search + BM25 keyword search with grounded RAG.
-🔄 Project Lifecycle Management — Draft → Submitted → Review → Approved → Implementation → Monitoring → Completed → Closed.
-⚖️ CSR Compliance — Section 135 and Schedule VII checks, compliance flagging, and duplicate/double-funding detection.
-👥 Role-Based Access Control — CSR Head, Project Manager, and Approver/Auditor.
-📊 Project Tracking — Budgets, milestones, progress, and overdue milestone detection.
-🔐 Security & Audit — JWT authentication, RLS, project isolation, and SHA-256 hash-chain audit trail.
-🧠 Knowledge Graph — Optional Neo4j-based entity and relationship mapping.
-🏗️ Architecture
-React Frontend
-      ↓
-FastAPI Backend
-      ↓
- ┌───────────────┬─────────────────┐
- │ Authentication │ CSR Workflow   │
- │ JWT + RBAC     │ + Compliance   │
- └───────┬───────┴────────┬────────┘
-         ↓                 ↓
-   Document Engine     Project Data
-    OCR + AI             Supabase
-         ↓
-   FAISS + BM25
-         ↓
-   Grounded RAG
-         ↓
-   Ollama / HF
+AI Document Intelligence – Extracts key information from CSR documents using OCR and AI.
+RAG-Based Document Q&A – Ask questions about uploaded project documents and receive context-based answers.
+Hybrid Search – Combines semantic/vector search with keyword search for accurate retrieval.
+CSR Lifecycle Management – Tracks projects from proposal to closure.
+Budget & Milestone Tracking – Monitor project spending, milestones, and progress.
+Compliance Checks – Helps identify missing or potentially non-compliant information.
+Inconsistency Detection – Flags potential contradictions across project documents and reports.
+Tamper-Evident Audit Trail – Uses SHA-256 hash chaining to detect unauthorized changes.
+Role-Based Access Control (RBAC) – Restricts actions based on user roles.
+Project Isolation – Prevents unauthorized access to other projects' data.
+Secure Authentication – JWT authentication with refresh-token/session support.
+AES-256 Encryption – Protects sensitive data at rest.
+Knowledge Graph – Optional Neo4j-based visualization of relationships between project entities.
 👥 User Roles
-Role	Responsibility
-CSR Head	Creates projects, assigns members, manages budgets and users
-Project Manager	Executes projects, manages documents and milestones
-Approver / Auditor	Reviews projects, checks compliance, approves/rejects stages
-Workflow
-Draft
-  ↓
-Submitted
-  ↓
-Under Review
-  ↓
-Approved
-  ↓
-In Progress
-  ↓
-Monitoring
-  ↓
-Completed
-  ↓
-Closed
+CSR Head
+Creates and manages CSR projects
+Assigns Project Managers and Approvers
+Manages project information and budgets
+Views project progress and statistics
+Manages users
+Views audit history
+Project Manager
+Manages assigned projects
+Uploads and organizes documents
+Tracks milestones and expenses
+Uploads progress reports
+Submits projects for review
+Uses AI document Q&A
+Approver / Auditor
+Independently reviews projects
+Checks documents and compliance
+Reviews flagged inconsistencies
+Approves or rejects project stages
+Verifies audit history
+Rule: An Approver cannot approve or reject a project they created.
+🔄 Project Workflow
+Proposal → Evaluation/Compliance → Approval → Funding → Implementation → Monitoring → Completion → Closure
+Basic Flow:
+CSR Head creates project → Project Manager executes → Approver reviews and approves → Monitoring → Completion → CSR Head closes the project.
+🏗️ Architecture
+```text
+Frontend (React + Vite)
+        ↓
+FastAPI Backend
+        ↓
+Supabase PostgreSQL + Authentication
+        ↓
+AI/RAG Pipeline
+        ↓
+OCR → Chunking → Embeddings → FAISS → Hybrid Search → Ollama/LLM
 
-The backend enforces valid stage transitions and prevents self-approval.
-
-🛠️ Tech Stack
-Layer	Technology
-Frontend	React, Vite, Tailwind CSS
-Backend	FastAPI, Python, Uvicorn
-Authentication	Supabase Auth + JWT
-Database	Supabase PostgreSQL
-Vector Search	FAISS
-Keyword Search	BM25
-Embeddings	all-MiniLM-L6-v2
-LLM	Ollama / HuggingFace
-OCR	Tesseract + EasyOCR
-File Storage	Firebase
-Knowledge Graph	Neo4j AuraDB
-Deployment	Render + Vercel/Netlify
-⚙️ Setup
-Prerequisites
-Python 3.12+
-Node.js 18+
-npm
-Git
-Supabase account
-Ollama (optional)
-1. Clone Repository
-git clone <YOUR_GITHUB_REPOSITORY_URL>
-cd CSRFlow
-2. Backend
+Neo4j can be used for knowledge-graph visualization.
+```
+🛠️ Technology Stack
+Frontend: React.js, Vite, JavaScript, Tailwind CSS, React Router, Axios
+Backend: Python, FastAPI, JWT
+Database & Authentication: Supabase, PostgreSQL, Supabase Auth, Row Level Security
+AI/RAG: Ollama, Sentence Transformers, FAISS, OCR, Embeddings, RAG
+Knowledge Graph: Neo4j
+Security: AES-256, SHA-256 Hash Chaining, RBAC, JWT + Refresh Tokens
+⚙️ Installation
+Backend
+```bash
 cd back-end
 python -m venv venv
-
-Windows
-
-venv\Scripts\activate
-
-macOS/Linux
-
-source venv/bin/activate
+```
+Windows:
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+Install dependencies:
+```bash
 pip install -r requirements.txt
-uvicorn main:app --reload
-
-Backend: http://localhost:8000
-API Docs: http://localhost:8000/docs
-
-3. Supabase
-
-Create a Supabase project and run the provided SQL migration in:
-
-Supabase Dashboard → SQL Editor
-
-The migration creates the required user, project, and workflow tables with Row Level Security.
-
-Create test users for:
-
-CSR Head
-Project Manager
-Approver
-4. Frontend
-
-Open a new terminal:
-
+```
+Run the backend:
+```bash
+uvicorn main:app --reload --port 8000
+```
+Backend runs at:
+`http://localhost:8000`
+Frontend
+Open another terminal:
+```bash
 cd frontend
 npm install
 npm run dev
-
-Frontend: http://localhost:3000
-
-Keep the backend running while using the frontend.
-
+```
+Frontend runs at:
+`http://localhost:3000`
+Keep both frontend and backend running during development.
 🔐 Environment Variables
-Backend .env
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_JWT_SECRET=
-
-HUGGINGFACE_API_KEY=
-
-FIREBASE_CREDENTIALS_PATH=
-FIREBASE_STORAGE_BUCKET=
-
-NEO4J_ENABLED=false
-NEO4J_URI=
-NEO4J_USERNAME=
-NEO4J_PASSWORD=
-
-CORS_ORIGINS=http://localhost:3000
-Frontend .env
-VITE_SUPABASE_URL=
-VITE_SUPABASE_ANON_KEY=
+Backend `.env`
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+SUPABASE_JWT_SECRET=your_jwt_secret
+```
+Frontend `.env`
+```env
 VITE_API_BASE_URL=http://localhost:8000
-
-Never commit .env files or secret keys to GitHub.
-
-🧠 AI Pipeline
-Upload Document
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+Never commit `.env` files or secret keys to GitHub.
+🗄️ Supabase Setup
+Create a Supabase project.
+Open the SQL Editor.
+Run the provided database migration.
+Create users using Supabase Authentication.
+Assign one of the following roles:
+`csr_head`
+`project_manager`
+`approver`
+Supabase provides authentication, PostgreSQL, and Row Level Security for protecting project data.
+🤖 AI Pipeline
+```text
+Document Upload
       ↓
 OCR / Text Extraction
       ↓
-Classification & Field Extraction
+Document Chunking
       ↓
-Chunking + Embeddings
+Embedding Generation
       ↓
-FAISS + BM25 Search
+FAISS Vector Search
+      ↓
+Keyword + Semantic Search
       ↓
 Relevant Context
       ↓
-Grounded RAG
+Ollama / LLM
       ↓
-AI Response + Evidence
+AI Answer / Analysis
+```
+The system can also compare information across documents and flag potential inconsistencies.
 🔒 Security
-
 CSRFlow uses multiple security layers:
-
-Supabase Authentication
-JWT-based sessions
+JWT Authentication
+Refresh Tokens / Session Renewal
 Role-Based Access Control
-Row Level Security
-Project-level authorization
-Self-approval prevention
-SHA-256 hash-chain audit trail
-Secure environment variables
+Supabase Row Level Security
+Project-Level Authorization
+Project Isolation
+AES-256 Encryption
+SHA-256 Hash Chaining
+Audit Logging
+📊 Audit Trail
+Important project actions are recorded using a hash chain:
+```text
+Record 1 → SHA-256 → Record 2 → SHA-256 → Record 3 → ...
+```
+If an earlier record is modified, the hash chain can indicate that the audit history has been altered.
 🧪 Testing
-cd back-end
-pytest tests/
+Backend:
+```bash
+pytest
+```
+Frontend build:
+```bash
+npm run build
+```
 🚀 Deployment
-
-Backend: Render
 Frontend: Vercel / Netlify
-
-Configure the required environment variables on the deployment platform before deploying.
-
+Backend: Render / Railway / Any FastAPI-compatible cloud platform
+Database & Authentication: Supabase
 🔮 Future Enhancements
-Automated CSR impact report generation
-Advanced budget anomaly detection
-Real-time notifications
-Expanded compliance rules
-Advanced knowledge-graph analytics
-Multi-organization support
+Automated CSR report generation
+Advanced inconsistency analysis
+Email and notification system
+Advanced analytics dashboard
+Mobile application
+Advanced knowledge-graph insights
+Automated compliance recommendations
+🎯 Vision
+CSRFlow transforms fragmented CSR paperwork into a traceable digital lifecycle where AI understands documents, helps detect potential inconsistencies, tracks funds and milestones, and creates a tamper-evident trail from proposal to closure.
+👩‍💻 Team
+Built as a hackathon project focused on improving transparency, efficiency, compliance, and accountability in CSR project management.
