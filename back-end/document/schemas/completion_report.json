@@ -1,0 +1,42 @@
+{
+  "document_type": "Completion Report",
+  "description": "Final completion report for a CSR project detailing project closeout and final outcomes",
+  "fields": [
+    {
+      "name": "project_title",
+      "type": "string",
+      "description": "Title of completed CSR project",
+      "required": true
+    },
+    {
+      "name": "implementing_agency",
+      "type": "string",
+      "description": "Executing agency name",
+      "required": true
+    },
+    {
+      "name": "completion_date",
+      "type": "date",
+      "description": "Date of project completion",
+      "required": true
+    },
+    {
+      "name": "final_cost",
+      "type": "number",
+      "description": "Final total project cost incurred in INR",
+      "required": true
+    },
+    {
+      "name": "target_achieved",
+      "type": "string",
+      "description": "Summary of target physical and social goals achieved",
+      "required": false
+    },
+    {
+      "name": "impact_summary",
+      "type": "string",
+      "description": "Overall impact assessment summary",
+      "required": false
+    }
+  ]
+}

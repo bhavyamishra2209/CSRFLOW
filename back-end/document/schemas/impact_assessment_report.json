@@ -1,0 +1,42 @@
+{
+  "document_type": "Impact Assessment Report",
+  "description": "Third-party social impact assessment report evaluating CSR project outcomes and effectiveness",
+  "fields": [
+    {
+      "name": "project_title",
+      "type": "string",
+      "description": "Title of assessed CSR project",
+      "required": true
+    },
+    {
+      "name": "assessing_agency",
+      "type": "string",
+      "description": "Independent evaluation agency name",
+      "required": true
+    },
+    {
+      "name": "assessment_period",
+      "type": "string",
+      "description": "Period covered by impact evaluation",
+      "required": false
+    },
+    {
+      "name": "impact_score",
+      "type": "string",
+      "description": "Quantified impact rating or score",
+      "required": false
+    },
+    {
+      "name": "key_findings",
+      "type": "string",
+      "description": "Summary of major impact findings and recommendations",
+      "required": true
+    },
+    {
+      "name": "assessment_date",
+      "type": "date",
+      "description": "Date of impact assessment report",
+      "required": true
+    }
+  ]
+}

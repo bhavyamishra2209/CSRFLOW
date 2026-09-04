@@ -1,0 +1,42 @@
+{
+  "document_type": "Audit Report",
+  "description": "Financial and statutory audit report evaluating CSR expenditure and compliance",
+  "fields": [
+    {
+      "name": "audit_report_number",
+      "type": "string",
+      "description": "Unique audit report number",
+      "required": true
+    },
+    {
+      "name": "auditor_name",
+      "type": "string",
+      "description": "Name of independent auditor or auditing firm",
+      "required": true
+    },
+    {
+      "name": "project_title",
+      "type": "string",
+      "description": "Audited project title",
+      "required": true
+    },
+    {
+      "name": "financial_year",
+      "type": "string",
+      "description": "Financial year audited",
+      "required": true
+    },
+    {
+      "name": "audit_opinion",
+      "type": "string",
+      "description": "Auditor's opinion (Unqualified, Qualified, Adverse, Disclaimer)",
+      "required": true
+    },
+    {
+      "name": "audit_date",
+      "type": "date",
+      "description": "Date of audit completion",
+      "required": true
+    }
+  ]
+}

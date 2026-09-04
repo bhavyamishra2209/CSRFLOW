@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: documind-ai-backend
+    runtime: docker
+    # rootDir tells Render where to find the Dockerfile and app code.
+    # The Dockerfile is at back-end/Dockerfile relative to the repo root.
+    rootDir: back-end
+    dockerfilePath: ./Dockerfile
+    region: singapore          # closest free region to India
+    plan: free
+
+    healthCheckPath: /health
+
+    # ── Environment variables ─────────────────────────────────────────────────
+    # sync: false → Render prompts you to enter values in the dashboard
+    # so secrets never appear in this file.
+    envVars:
+      # ── Supabase auth (Phase 2) ─────────────────────────────────────────────
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: ADMIN_USER_IDS
+        sync: false
+
+      # ── Neo4j knowledge graph (Phase 3) ─────────────────────────────────────
+      - key: NEO4J_ENABLED
+        value: "false"
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USERNAME
+        sync: false
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: NEO4J_DATABASE
+        sync: false
+
+      # ── LLM — HuggingFace fallback ──────────────────────────────────────────
+      # Ollama is not available on Render free tier (no persistent process).
+      # The app auto-falls back to HuggingFace Inference API.
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+
+      # ── CORS ─────────────────────────────────────────────────────────────────
+      - key: CORS_ORIGINS
+        sync: false
+
+      # ── App settings ─────────────────────────────────────────────────────────
+      - key: LOG_LEVEL
+        value: INFO
+      # Reduce RAM usage on free tier
+      - key: TRANSFORMERS_CACHE
+        value: /tmp/transformers_cache
+      - key: SENTENCE_TRANSFORMERS_HOME
+        value: /tmp/st_cache
+      - key: TOKENIZERS_PARALLELISM
+        value: "false"

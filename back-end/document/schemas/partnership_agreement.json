@@ -1,0 +1,42 @@
+{
+  "document_type": "Partnership Agreement",
+  "description": "CSR partnership agreement or Memorandum of Understanding (MOU) between funding entity and partner agency",
+  "fields": [
+    {
+      "name": "agreement_title",
+      "type": "string",
+      "description": "Title or subject of the agreement/MOU",
+      "required": true
+    },
+    {
+      "name": "partner_organization",
+      "type": "string",
+      "description": "Corporate or funding partner organization",
+      "required": true
+    },
+    {
+      "name": "implementing_agency",
+      "type": "string",
+      "description": "Implementing NGO or partner agency",
+      "required": true
+    },
+    {
+      "name": "agreement_date",
+      "type": "date",
+      "description": "Date of agreement execution",
+      "required": true
+    },
+    {
+      "name": "funding_amount",
+      "type": "number",
+      "description": "Agreed funding or grant amount in INR",
+      "required": false
+    },
+    {
+      "name": "validity_period",
+      "type": "string",
+      "description": "Tenure or validity period of agreement",
+      "required": false
+    }
+  ]
+}

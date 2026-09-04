@@ -1,0 +1,12 @@
+{
+  "DOC-AUDIT-99": {
+    "document_id": "DOC-AUDIT-99",
+    "filename": "q3_invoice.pdf",
+    "document_type": "invoice",
+    "case_id": "CASE-DOC-AUDIT",
+    "raw_text_preview": "Invoice total $5000",
+    "uploaded_by": "pm_exec_101",
+    "verification_status": "verified",
+    "verification_reason": "Invoice verified against bank transaction"
+  }
+}
